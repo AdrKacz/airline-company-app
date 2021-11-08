@@ -1,0 +1,23 @@
+{
+  "files": {
+    "main.css": "/airline-company-app/static/css/main.8c8b27cf.chunk.css",
+    "main.js": "/airline-company-app/static/js/main.c28cd11a.chunk.js",
+    "main.js.map": "/airline-company-app/static/js/main.c28cd11a.chunk.js.map",
+    "runtime-main.js": "/airline-company-app/static/js/runtime-main.2df8484d.js",
+    "runtime-main.js.map": "/airline-company-app/static/js/runtime-main.2df8484d.js.map",
+    "static/js/2.e3b887a1.chunk.js": "/airline-company-app/static/js/2.e3b887a1.chunk.js",
+    "static/js/2.e3b887a1.chunk.js.map": "/airline-company-app/static/js/2.e3b887a1.chunk.js.map",
+    "static/js/3.f16f9337.chunk.js": "/airline-company-app/static/js/3.f16f9337.chunk.js",
+    "static/js/3.f16f9337.chunk.js.map": "/airline-company-app/static/js/3.f16f9337.chunk.js.map",
+    "index.html": "/airline-company-app/index.html",
+    "static/css/main.8c8b27cf.chunk.css.map": "/airline-company-app/static/css/main.8c8b27cf.chunk.css.map",
+    "static/js/2.e3b887a1.chunk.js.LICENSE.txt": "/airline-company-app/static/js/2.e3b887a1.chunk.js.LICENSE.txt",
+    "static/media/logo.6ce24c58.svg": "/airline-company-app/static/media/logo.6ce24c58.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.2df8484d.js",
+    "static/js/2.e3b887a1.chunk.js",
+    "static/css/main.8c8b27cf.chunk.css",
+    "static/js/main.c28cd11a.chunk.js"
+  ]
+}
