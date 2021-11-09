@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/airline-company-app/static/css/main.5db6db1c.chunk.css",
-    "main.js": "/airline-company-app/static/js/main.669dd64d.chunk.js",
-    "main.js.map": "/airline-company-app/static/js/main.669dd64d.chunk.js.map",
+    "main.js": "/airline-company-app/static/js/main.68254947.chunk.js",
+    "main.js.map": "/airline-company-app/static/js/main.68254947.chunk.js.map",
     "runtime-main.js": "/airline-company-app/static/js/runtime-main.dc75abd9.js",
     "runtime-main.js.map": "/airline-company-app/static/js/runtime-main.dc75abd9.js.map",
     "static/css/2.0440f8c5.chunk.css": "/airline-company-app/static/css/2.0440f8c5.chunk.css",
@@ -20,6 +20,6 @@
     "static/css/2.0440f8c5.chunk.css",
     "static/js/2.ac711302.chunk.js",
     "static/css/main.5db6db1c.chunk.css",
-    "static/js/main.669dd64d.chunk.js"
+    "static/js/main.68254947.chunk.js"
   ]
 }
