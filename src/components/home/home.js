@@ -41,19 +41,30 @@ function Home({flightsState}) {
             </select>
             <label htmlFor="floatingSelect">To</label>
           </div>
-          <div className='mb-3'>
-            {from && to && <p>Round Trip, From {from.toLocaleDateString(undefined, options)}, To {to.toLocaleDateString(undefined, options)}</p>}
-            {from && !to && <p>One-Way, On {from.toLocaleDateString(undefined, options)}</p>}
-            {!from && <p>...</p>}
-            <DayPicker
-              className='Selectable'
-              numberOfMonths={2}
-              onDayClick={handleDayClick}
-              modifiers={modifiers}
-              selectedDays={[from, { from, to }]}
-            />
+          <div className='row mb-3'>
+            <div className='col'>
+              <DayPicker
+                className='Selectable'
+                numberOfMonths={2}
+                onDayClick={handleDayClick}
+                modifiers={modifiers}
+                selectedDays={[from, { from, to }]}
+              />
+            </div>
+            {from &&
+            <div className='col'>
+              <div className='card'>
+                <div className='card-header'>
+                  Ready to set the earth on fire?
+                </div>
+                <div className='card-body'>
+                  <h5 className='card-title'>Marseille - Charles de Gaulle</h5>
+                  <button onClick={handleConfirmClick} class="btn btn-primary mb-5" type="submit">Confirm</button>
+                </div>
+              </div>
+            </div>
+            }
           </div>
-          <button onClick={handleConfirmClick} class="btn btn-primary mb-5" type="submit">Confirm</button>
         </form>
       </div>
     </main>
