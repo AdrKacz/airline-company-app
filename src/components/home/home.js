@@ -6,14 +6,23 @@ import 'react-day-picker/lib/style.css';
 import './home.css';
 
 function Home({flightsState}) {
+  const [selectedAirports, setSelectedAirports] = useState({from: undefined, to: undefined});
   const [selectedRangeDays, setSelectedRangeDays] = useState({from: undefined, to: undefined});
 
-  function handleDayClick(day, { selected }) {
+  function handleDays(day, { selected }) {
     const range = DateUtils.addDayToRange(day, selectedRangeDays);
-    setSelectedRangeDays(range);
+    if (range.from && range.to && range.from.toUTCString() === range.to.toUTCString()) {
+      setSelectedRangeDays({from: undefined, to: undefined});
+    } else {
+      setSelectedRangeDays(range);
+    }
   }
 
-  function handleConfirmClick(e) {
+  function handleAirports({from, to}) {
+    setSelectedAirports({from, to})
+  }
+
+  function handleSubmit(e) {
     e.preventDefault();
     flightsState();
   }
@@ -26,45 +35,59 @@ function Home({flightsState}) {
       <div className='container'>
         <h1 className='mt-5'>Not So Green</h1>
         <p className='lead'>Book your flight and discover new worlds.</p>
-        <form>
+        <form onSubmit={handleSubmit}>
           <div className='form-floating mb-3'>
-            <select className='form-select' id='floatingSelect'>
-              <option selected value='CDG'>Charles de Gaulle</option>
+            <select
+              value={selectedAirports.from}
+              onChange={({target}) => handleAirports({from: target.value, to: selectedAirports.to})}
+              className='form-select'
+              id='floatingSelect'
+            >
+              <option>...</option>
+              <option value='CDG'>Charles de Gaulle</option>
               <option value='MRS'>Marseille</option>
             </select>
             <label htmlFor="floatingSelect">From</label>
           </div>
           <div className='form-floating mb-3'>
-            <select className='form-select' id='floatingSelect'>
-              <option selected value='CDG'>Charles de Gaulle</option>
+            <select
+              value={selectedAirports.to}
+              onChange={({target}) => handleAirports({from: selectedAirports.from, to: target.value})}
+              className='form-select'
+              id='floatingSelect'
+            >
+              <option>...</option>
+              <option value='CDG'>Charles de Gaulle</option>
               <option value='MRS'>Marseille</option>
             </select>
             <label htmlFor="floatingSelect">To</label>
           </div>
-          <div className='row mb-3'>
-            <div className='col'>
-              <DayPicker
-                className='Selectable'
-                numberOfMonths={2}
-                onDayClick={handleDayClick}
-                modifiers={modifiers}
-                selectedDays={[from, { from, to }]}
-              />
-            </div>
-            {from &&
-            <div className='col'>
-              <div className='card'>
-                <div className='card-header'>
-                  Ready to set the earth on fire?
-                </div>
-                <div className='card-body'>
-                  <h5 className='card-title'>Marseille - Charles de Gaulle</h5>
-                  <button onClick={handleConfirmClick} class="btn btn-primary mb-5" type="submit">Confirm</button>
-                </div>
-              </div>
-            </div>
-            }
+          <div className='mb-3'>
+            <DayPicker
+              className='Selectable'
+              numberOfMonths={2}
+              onDayClick={handleDays}
+              modifiers={modifiers}
+              selectedDays={[from, { from, to }]}
+            />
           </div>
+          {selectedAirports.from && selectedAirports.to && from &&
+          <div className='card mb-3'>
+            <div className='card-header'>
+              Ready to set the earth on fire?
+            </div>
+            <div className='card-body'>
+              <h5 className='card-title'>{selectedAirports.from} - {selectedAirports.to}</h5>
+              <p className='lead'>From</p>
+              <p>{from.toLocaleDateString(undefined, options)}</p>
+              {to && (<>
+                <p className='lead'>To</p>
+                <p>{to.toLocaleDateString(undefined, options)}</p>
+              </>)}
+              <button className="btn btn-primary" type="submit">Confirm</button>
+            </div>
+          </div>
+          }
         </form>
       </div>
     </main>
