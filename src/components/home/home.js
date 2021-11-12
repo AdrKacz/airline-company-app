@@ -3,32 +3,34 @@ import { useState } from 'react';
 import DayPicker, { DateUtils } from 'react-day-picker';
 import 'react-day-picker/lib/style.css';
 
+import useSearchInfo from '../../hooks/useSearchInfo.js';
+
 import './home.css';
 
 function Home({flightsState}) {
-  const [selectedAirports, setSelectedAirports] = useState({from: undefined, to: undefined});
-  const [selectedRangeDays, setSelectedRangeDays] = useState({from: undefined, to: undefined});
+  const [searchInfo, updateAirports, updateDates, validateSearch] = useSearchInfo();
 
   function handleDays(day, { selected }) {
-    const range = DateUtils.addDayToRange(day, selectedRangeDays);
+    const range = DateUtils.addDayToRange(day, {from: searchInfo.fromDate, to: searchInfo.toDate});
     if (range.from && range.to && range.from.toUTCString() === range.to.toUTCString()) {
-      setSelectedRangeDays({from: undefined, to: undefined});
+      updateDates({from: undefined, to: undefined});
     } else {
-      setSelectedRangeDays(range);
+      updateDates(range);
     }
   }
 
   function handleAirports({from, to}) {
-    setSelectedAirports({from, to})
+    updateAirports({from, to})
   }
 
   function handleSubmit(e) {
     e.preventDefault();
+    validateSearch()
     flightsState();
   }
 
-  const options = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'}
-  const { from, to } = selectedRangeDays;
+  const options = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'};
+  const { from, to } = {from: searchInfo.fromDate, to: searchInfo.toDate};
   const modifiers = { start: from, end: to };
   return (
     <main className='flex-shrink-0'>
@@ -38,8 +40,8 @@ function Home({flightsState}) {
         <form onSubmit={handleSubmit}>
           <div className='form-floating mb-3'>
             <select
-              value={selectedAirports.from}
-              onChange={({target}) => handleAirports({from: target.value, to: selectedAirports.to})}
+              value={searchInfo.fromAirport}
+              onChange={({target}) => handleAirports({from: target.value, to: searchInfo.toAirport})}
               className='form-select'
               id='floatingSelect'
             >
@@ -51,8 +53,8 @@ function Home({flightsState}) {
           </div>
           <div className='form-floating mb-3'>
             <select
-              value={selectedAirports.to}
-              onChange={({target}) => handleAirports({from: selectedAirports.from, to: target.value})}
+              value={searchInfo.toAirport}
+              onChange={({target}) => handleAirports({from: searchInfo.fromAirport, to: target.value})}
               className='form-select'
               id='floatingSelect'
             >
@@ -71,13 +73,13 @@ function Home({flightsState}) {
               selectedDays={[from, { from, to }]}
             />
           </div>
-          {selectedAirports.from && selectedAirports.to && from &&
+          {searchInfo.fromAirport && searchInfo.toAirport && from &&
           <div className='card mb-3'>
             <div className='card-header'>
               Ready to set the earth on fire?
             </div>
             <div className='card-body'>
-              <h5 className='card-title'>{selectedAirports.from} - {selectedAirports.to}</h5>
+              <h5 className='card-title'>{searchInfo.fromAirport} - {searchInfo.toAirport}</h5>
               <p className='lead'>From</p>
               <p>{from.toLocaleDateString(undefined, options)}</p>
               {to && (<>

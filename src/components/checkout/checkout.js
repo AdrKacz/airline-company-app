@@ -1,10 +1,33 @@
+import { useState } from 'react';
+
 import airTransport from '../../assets/air-transport.png';
 
+import useRedeems from '../../hooks/useRedeems.js';
+import useUser from '../../hooks/useUser.js';
+
 function Checkout({completionState}) {
-  function handleClickConfirm(e) {
+  const [redeem, setRedeem] = useState('');
+  const [redeems, addRedeem] = useRedeems();
+  const [user, ] = useUser();
+
+  function handleChangeRedeem({target}) {
+    setRedeem(target.value);
+  }
+
+  function handleSubmitRedeem(e) {
+    e.preventDefault();
+    if (redeem) {
+      addRedeem(redeem);
+      setRedeem('');
+    }
+  }
+
+  function handleSubmit(e) {
     e.preventDefault();
     completionState();
   }
+
+  const options = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'};
 
   return (
     <div className='container pb-5'>
@@ -24,48 +47,37 @@ function Checkout({completionState}) {
             <ul className='list-group mb-3'>
               <li className='list-group-item d-flex justify-content-between lh-sm'>
                 <div>
-                  <h6 className='my-0'>Product name</h6>
-                  <small className='text-muted'>Brief description</small>
+                  <h6 className='my-0'>{`${user.flight.from} - ${user.flight.from}`}</h6>
+                  <small className='text-muted'>{user.flight.departure.toLocaleDateString(undefined, options)}</small>
                 </div>
-                <span className='text-muted'>$12</span>
+                <span className='text-muted'>{`$${user.flight.price}`}</span>
               </li>
-              <li className='list-group-item d-flex justify-content-between lh-sm'>
-                <div>
-                  <h6 className='my-0'>Second product</h6>
-                  <small className='text-muted'>Brief description</small>
-                </div>
-                <span className='text-muted'>$8</span>
-              </li>
-              <li className='list-group-item d-flex justify-content-between lh-sm'>
-                <div>
-                  <h6 className='my-0'>Third item</h6>
-                  <small className='text-muted'>Brief description</small>
-                </div>
-                <span className='text-muted'>$5</span>
-              </li>
-              <li className='list-group-item d-flex justify-content-between bg-light'>
-                <div className='text-success'>
-                  <h6 className='my-0'>Promo code</h6>
-                  <small>EXAMPLECODE</small>
-                </div>
-                <span className='text-success'>−$5</span>
-              </li>
+              {redeems.map((r, i) => (
+                <li key={i} className='list-group-item d-flex justify-content-between bg-light'>
+                  <div className='text-success'>
+                    <h6 className='my-0'>Promo code</h6>
+                    <small>{r.code}</small>
+                  </div>
+                  <span className='text-success'>{`-$${r.discount}`}</span>
+                </li>
+              ))
+              }
               <li className='list-group-item d-flex justify-content-between'>
                 <span>Total (USD)</span>
                 <strong>$20</strong>
               </li>
             </ul>
 
-            <form className='card p-2'>
+            <form onSubmit={handleSubmitRedeem} className='card p-2'>
               <div className='input-group'>
-                <input type='text' className='form-control' placeholder='Promo code'/>
+                <input value={redeem} onChange={handleChangeRedeem} type='text' className='form-control' placeholder='Promo code'/>
                 <button type='submit' className='btn btn-secondary'>Redeem</button>
               </div>
             </form>
           </div>
           <div className='col-md-7 col-lg-8'>
             <h4 className='mb-3'>Billing address</h4>
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className='row g-3'>
                 <div className='col-sm-6'>
                   <label htmlFor='firstName' className='form-label'>First name</label>
@@ -149,11 +161,6 @@ function Checkout({completionState}) {
               <hr className='my-4'/>
 
               <div className='form-check'>
-                <input type='checkbox' className='form-check-input' id='same-address'/>
-                <label className='form-check-label' htmlFor='same-address'>Shipping address is the same as my billing address</label>
-              </div>
-
-              <div className='form-check'>
                 <input type='checkbox' className='form-check-input' id='save-info'/>
                 <label className='form-check-label' htmlFor='save-info'>Save this information for next time</label>
               </div>
@@ -161,21 +168,6 @@ function Checkout({completionState}) {
               <hr className='my-4'/>
 
               <h4 className='mb-3'>Payment</h4>
-
-              <div className='my-3'>
-                <div className='form-check'>
-                  <input id='credit' name='paymentMethod' type='radio' className='form-check-input' defaultChecked='' required=''/>
-                  <label className='form-check-label' htmlFor='credit'>Credit card</label>
-                </div>
-                <div className='form-check'>
-                  <input id='debit' name='paymentMethod' type='radio' className='form-check-input' required=''/>
-                  <label className='form-check-label' htmlFor='debit'>Debit card</label>
-                </div>
-                <div className='form-check'>
-                  <input id='paypal' name='paymentMethod' type='radio' className='form-check-input' required=''/>
-                  <label className='form-check-label' htmlFor='paypal'>PayPal</label>
-                </div>
-              </div>
 
               <div className='row gy-3'>
                 <div className='col-md-6'>
@@ -213,7 +205,7 @@ function Checkout({completionState}) {
               </div>
               <hr className='my-4'/>
 
-              <button onClick={handleClickConfirm} className='w-100 btn btn-primary btn-lg' type='submit'>Continue to checkout</button>
+              <button className='w-100 btn btn-primary btn-lg' type='submit'>Continue to checkout</button>
             </form>
           </div>
         </div>
