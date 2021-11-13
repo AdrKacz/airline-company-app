@@ -9,20 +9,35 @@ import Checkout from './components/checkout/checkout';
 import Completion from './components/completion/completion';
 import SignIn from './components/signin/signin';
 
-function App() {
-  const [appState, setAppState] = useState('home')
+import useUser from './hooks/useUser.js';
 
+function App() {
+  const [user, ] = useUser();
+  const [previousAppState, setPreviousAppState] = useState('home');
+  const [appState, setAppState] = useState('home');
+
+  function changeAppState(state) {
+    setPreviousAppState(appState);
+    setAppState(state);
+  }
+
+  if (appState === 'checkout' && !user.isConnected) {
+    changeAppState('signin');
+  }
+  
   return (
     <>
       <Header
-        homeState={() => setAppState('home')}
-        signInState={() => setAppState('signin')}
+        isConnected={user.isConnected}
+        homeState={() => changeAppState('home')}
+        signInState={() => changeAppState('signin')}
+        profileState={() => changeAppState('profile')}
       />
-      {appState === 'home' && <Home flightsState={() => setAppState('flights')}/>}
-      {appState === 'flights' && <Flights checkoutState={() => setAppState('checkout')}/>}
-      {appState === 'checkout' && <Checkout completionState={() => setAppState('completion')}/>}
-      {appState === 'completion' && <Completion homeState={() => setAppState('home')}/>}
-      {appState === 'signin' && <SignIn />}
+      {appState === 'home' && <Home flightsState={() => changeAppState('flights')}/>}
+      {appState === 'flights' && <Flights checkoutState={() => changeAppState('checkout')}/>}
+      {appState === 'checkout' && <Checkout completionState={() => changeAppState('completion')}/>}
+      {appState === 'completion' && <Completion homeState={() => changeAppState('home')}/>}
+      {appState === 'signin' && <SignIn previousState={() => changeAppState(previousAppState)}/>}
       <Footer />
     </>
   );
