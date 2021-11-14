@@ -14,7 +14,6 @@ function useUser(auth=false) {
   }
 
   function signIn(email, password) {
-    console.log('SignIn', email, password)
     setIsConnected(true);
     user.isConnected = true;
     user.email = email;

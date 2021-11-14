@@ -1,5 +1,34 @@
 # airline-company-app
 
+Work done for Centrale Lyon, MOD 4.6 Database system
+
+Airline Company Website is up and running at *[https://adrkacz.github.io/airline-company-interface/](https://adrkacz.github.io/airline-company-interface/)*
+
+# How to modify app interface and run it ?
+
+1. Execute the following commands:
+```
+git clone https://github.com/AdrKacz/airline-company-app.git
+cd airline-company-app
+yarn install
+yarn start
+```
+2. Go to *[http://127.0.0.1:3000](http://127.0.0.1:3000)*.
+
+3. Modify files in the `./src` folder.
+
+3. On your browser, hit `Ctrl-R` to reload page and see your modifications, if any.
+
+4. On your terminal Hit `Ctrl-C` to stop the local server.
+
+# Database
+
+Explore the database schema in [DrawSQL Airline Company App](https://drawsql.app/ecl/diagrams/airline-company-app).
+
+![Model](./backend/database/model.png)
+
+---
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
