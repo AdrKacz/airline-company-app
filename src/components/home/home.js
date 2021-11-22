@@ -2,11 +2,13 @@ import DayPicker, { DateUtils } from 'react-day-picker';
 import 'react-day-picker/lib/style.css';
 
 import useSearchInfo from '../../hooks/useSearchInfo.js';
+import useAirports from '../../hooks/useAirports.js';
 
 import './home.css';
 
 function Home({flightsState}) {
   const [searchInfo, updateAirports, updateDates, validateSearch] = useSearchInfo();
+  const airports = useAirports();
 
   function handleDays(day, { selected }) {
     const range = DateUtils.addDayToRange(day, {from: searchInfo.fromDate, to: searchInfo.toDate});
@@ -18,18 +20,23 @@ function Home({flightsState}) {
   }
 
   function handleAirports({from, to}) {
-    updateAirports({from, to})
+    updateAirports({from, to});
   }
 
   function handleSubmit(e) {
     e.preventDefault();
-    validateSearch()
+    validateSearch();
     flightsState();
   }
 
   const options = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'};
   const { from, to } = {from: searchInfo.fromDate, to: searchInfo.toDate};
   const modifiers = { start: from, end: to };
+
+  const airportOptions = (key) => (airports.map((airport, i) => (
+    <option key={`${key}.${i}`} value={airport.code}>{airport.name}</option>
+  )));
+
   return (
     <main className='flex-shrink-0'>
       <div className='container'>
@@ -44,8 +51,7 @@ function Home({flightsState}) {
               id='floatingSelect'
             >
               <option>...</option>
-              <option value='CDG'>Charles de Gaulle</option>
-              <option value='MRS'>Marseille</option>
+              {airportOptions('from')}
             </select>
             <label htmlFor="floatingSelect">From</label>
           </div>
@@ -57,8 +63,7 @@ function Home({flightsState}) {
               id='floatingSelect'
             >
               <option>...</option>
-              <option value='CDG'>Charles de Gaulle</option>
-              <option value='MRS'>Marseille</option>
+              {airportOptions('to')}
             </select>
             <label htmlFor="floatingSelect">To</label>
           </div>

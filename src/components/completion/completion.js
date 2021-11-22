@@ -1,7 +1,7 @@
 function Completion({homeState}) {
 
-  function handleClick(value) {
-      console.log(value);
+  function handleClick(e) {
+      e.preventDefault();
       homeState();
   }
 
@@ -11,7 +11,7 @@ function Completion({homeState}) {
       <main className="px-3">
         <h1>Well done.</h1>
         <p className="lead">To balance the carbon footprint of your flight, you must stop eating for 153 days.</p>
-        <button onClick={handleClick} class="btn btn-primary">Return to home</button>
+        <button onClick={handleClick} className="btn btn-primary">Return to home</button>
       </main>
       <div className='mt-auto'></div>
     </div>

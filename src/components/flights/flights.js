@@ -3,13 +3,13 @@ import useUser from '../../hooks/useUser.js';
 
 function Flights({checkoutState}) {
   const flights = useFlights();
-  const [, setFlight] = useUser();
+  const [, setFlight, ] = useUser();
 
   function handleClickFlight(value) {
       setFlight(flights[value].first);
       checkoutState();
   }
-
+  
   const options = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'};
 
   return (

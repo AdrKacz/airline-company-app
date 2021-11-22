@@ -1,16 +1,19 @@
 import { useState } from 'react'
 
 // NOTE: Local Store
-let user = {isConnected:false}
+let user = {isConnected:false, flights: []}
 
 function useUser(auth=false) {
   // TODO: SQL
   const [, setIsConnected] = useState(user.isConnected);
-  const [, setFlight] = useState(user.flight);
+  const [, setFlights] = useState(user.flights);
 
-  function setUserFlight(localFlight) {
-    setFlight(localFlight);
-    user.flight = localFlight;
+  function setUserFlight(localFlight, trip='first') {
+    user.flights.push({
+      ...localFlight,
+      trip: trip,
+    });
+    setFlights(user.flights);
   }
 
   function signIn(email, password) {

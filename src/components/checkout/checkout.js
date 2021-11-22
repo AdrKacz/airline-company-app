@@ -45,15 +45,17 @@ function Checkout({completionState}) {
               <span className='badge bg-primary rounded-pill'>3</span>
             </h4>
             <ul className='list-group mb-3'>
-              <li className='list-group-item d-flex justify-content-between lh-sm'>
-                <div>
-                  <h6 className='my-0'>{`${user.flight.from} - ${user.flight.from}`}</h6>
-                  <small className='text-muted'>{user.flight.departure.toLocaleDateString(undefined, options)}</small>
-                </div>
-                <span className='text-muted'>{`$${user.flight.price}`}</span>
-              </li>
+              {user.flights.map((flight, i) => (
+                <li key={`flight-${i}`} className='list-group-item d-flex justify-content-between lh-sm'>
+                  <div>
+                    <h6 className='my-0'>{`${flight.from} - ${flight.from}`}</h6>
+                    <small className='text-muted'>{flight.departure.toLocaleDateString(undefined, options)}</small>
+                  </div>
+                  <span className='text-muted'>{`$${flight.price}`}</span>
+                </li>
+              ))}
               {redeems.map((r, i) => (
-                <li key={i} className='list-group-item d-flex justify-content-between bg-light'>
+                <li key={`redeem-${i}`} className='list-group-item d-flex justify-content-between bg-light'>
                   <div className='text-success'>
                     <h6 className='my-0'>Promo code</h6>
                     <small>{r.code}</small>
