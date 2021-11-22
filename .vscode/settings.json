@@ -1,17 +1,3 @@
 {
-    "sqltools.connections": [
-        {
-            "mysqlOptions": {
-                "authProtocol": "xprotocol"
-            },
-            "previewLimit": 50,
-            "server": "airline-company-app-free-tier-1.cjazjcm93bvo.eu-west-3.rds.amazonaws.com",
-            "port": 3306,
-            "driver": "MySQL",
-            "name": "Airline Company App RDS mySQL",
-            "username": "admin",
-            "password": "oIVsklKfCBKPHAZYVPM4",
-            "database": "airline-company-app-free-tier-1"
-        }
-    ]
+    "sqltools.connections": []
 }
