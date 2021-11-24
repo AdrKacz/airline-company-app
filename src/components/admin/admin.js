@@ -172,7 +172,7 @@ function Admin() {
     <div className='container pb-5'>
         <main>
         <div className='py-5 text-center'>
-            <h2>Your the boss here!</h2>
+            <h2>You're the boss here!</h2>
             <p className='lead'>Just do anything you want, fire is in your hand.</p>
         </div>
         {forms}
