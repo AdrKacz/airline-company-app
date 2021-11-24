@@ -1,7 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const port = 3000;
+const port = 8080;
+
+async function getObjects(name) {
+    return [{
+        id: 1,
+        name: 'Aaa Bbb Ccc ' + name,
+        code: 'ABC',
+    }]
+}
 
 app.use(cors());
 
@@ -35,18 +43,58 @@ app.get('/flights/airports/:from-:to/date/:date', (req, res) => {
     return;
 });
 
-app.get('/airports', (req, res) => {
+app.get('/airports', async (req, res) => {
     res.status(200);
-    res.json([
-        {
-            name: 'Aaa Bbb Ccc',
-            code: 'ABC',
-        },
-        {
-            name: 'Bbb Bbb Ddd',
-            code: 'BBD',
-        }
-    ]);
+    objects = await getObjects('airports')
+    res.json(objects);
+});
+
+app.get('/employees', async (req, res) => {
+    res.status(200);
+    objects = await getObjects('employees')
+    res.json(objects);
+});
+
+app.get('/connections', async (req, res) => {
+    res.status(200);
+    objects = await getObjects('connections')
+    res.json(objects);
+});
+
+app.get('/airplanes', async (req, res) => {
+    res.status(200);
+    objects = await getObjects('airplanes')
+    res.json(objects);
+});
+
+app.get('/flights', async (req, res) => {
+    res.status(200);
+    objects = await getObjects('flights')
+    res.json(objects);
+});
+
+app.get('/pilots', async (req, res) => {
+    res.status(200);
+    objects = await getObjects('pilots')
+    res.json(objects);
+});
+
+app.get('/crew-members', async (req, res) => {
+    res.status(200);
+    objects = await getObjects('crew-members')
+    res.json(objects);
+});
+
+app.get('/departures', async (req, res) => {
+    res.status(200);
+    objects = await getObjects('departures')
+    res.json(objects);
+});
+
+app.get('/consumers', async (req, res) => {
+    res.status(200);
+    objects = await getObjects('consumers')
+    res.json(objects);
 });
 
 app.listen(port, () => {

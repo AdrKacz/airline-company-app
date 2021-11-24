@@ -1,4 +1,4 @@
-function Header({isConnected, homeState, signInState, profileState}) {
+function Header({isConnected, homeState, signInState, profileState, adminState}) {
   function handleClickHome(e) {
     e.preventDefault();
     homeState();
@@ -14,11 +14,16 @@ function Header({isConnected, homeState, signInState, profileState}) {
     profileState();
   }
 
+  function handleClickAdmin(e) {
+    e.preventDefault();
+    adminState();
+  }
+
   return (
     <header>
       <nav className='py-2 bg-light border-bottom'>
         <div className='container d-flex flex-wrap'>
-          <ul className='nav me-auto'>
+          <ul className='nav w-100'>
             <li className='nav-item'>
               <button type='button' onClick={handleClickHome} className='btn nav-link link-dark px-2'>Home</button>
             </li>
@@ -32,6 +37,9 @@ function Header({isConnected, homeState, signInState, profileState}) {
                 <button type='button' onClick={handleClickSignIn} className='btn nav-link link-dark px-2'>Sign in</button>
               </li>
             }
+            <li className='ms-auto nav-item'>
+                <button type='button' onClick={handleClickAdmin} className='btn nav-link link-dark px-2'>Admin</button>
+            </li>
           </ul>
         </div>
       </nav>

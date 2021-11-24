@@ -8,6 +8,8 @@ import Flights from './components/flights/flights';
 import Checkout from './components/checkout/checkout';
 import Completion from './components/completion/completion';
 import SignIn from './components/signin/signin';
+import Profile from './components/profile/profile';
+import Admin from './components/admin/admin';
 
 import useUser from './hooks/useUser.js';
 
@@ -32,12 +34,15 @@ function App() {
         homeState={() => changeAppState('home')}
         signInState={() => changeAppState('signin')}
         profileState={() => changeAppState('profile')}
+        adminState={() => changeAppState('admin')}
       />
       {appState === 'home' && <Home flightsState={() => changeAppState('flights')}/>}
       {appState === 'flights' && <Flights checkoutState={() => changeAppState('checkout')}/>}
       {appState === 'checkout' && <Checkout completionState={() => changeAppState('completion')}/>}
       {appState === 'completion' && <Completion homeState={() => changeAppState('home')}/>}
       {appState === 'signin' && <SignIn previousState={() => changeAppState(previousAppState)}/>}
+      {appState === 'profile' && <Profile/>}
+      {appState === 'admin' && <Admin/>}
       <Footer />
     </>
   );

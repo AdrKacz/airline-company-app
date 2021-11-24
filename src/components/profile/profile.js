@@ -1,8 +1,6 @@
-import useUser from '../../hooks/useUser.js';
+import airTransport from '../../assets/air-transport.png';
 
 function Profile() {
-  const [user, ] = useUser();
-
   return (
     <div className='container pb-5'>
       <main>
@@ -16,4 +14,4 @@ function Profile() {
   )
 }
 
-export default Flights;
+export default Profile;

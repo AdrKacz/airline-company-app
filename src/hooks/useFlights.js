@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import useSearchInfo from './useSearchInfo.js';
 
 const url = (fromAirport, toAirport, date) => (
-  `http://127.0.0.1:3000/flights/airports/${fromAirport}-${toAirport}/date/${date.valueOf()}`
+  `http://127.0.0.1:8080/flights/airports/${fromAirport}-${toAirport}/date/${date.valueOf()}`
 );
 
 const fetchAPI = async(fromAirport, toAirport, date) => {

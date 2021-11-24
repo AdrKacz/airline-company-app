@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 const url = () => (
-  `http://127.0.0.1:3000/airports`
+  `http://127.0.0.1:8080/airports`
 );
 
 const fetchAPI = async() => {
