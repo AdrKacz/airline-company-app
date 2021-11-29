@@ -125,8 +125,20 @@ function Admin() {
         });
     }
     }
-    function handleSubmitObject(object) {
-    console.log(create[object]);
+
+    async function handleSubmitObject(object) {
+        const responseJSON = await fetch('http://127.0.0.1:8080/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                object: object,
+                data: create[object]
+            }),
+        }).then(response => response.json());
+
+        console.log(responseJSON);
     }
 
     const forms = Object.entries(databaseSchema).map(([key, value], i) => (

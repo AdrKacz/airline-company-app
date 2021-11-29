@@ -1,5 +1,7 @@
 const mysql = require('mysql');
 const fs = require('fs');
+const {connect, query} = require('../helpers/mysql-helpers');
+
 
 (async () => {
     const connection = mysql.createConnection({
@@ -9,31 +11,7 @@ const fs = require('fs');
         database: 'airlineapp',
     });
 
-    const connect = () => (
-        new Promise((resolve, reject) => {
-            connection.connect((err, result) => {
-                if (err) {
-                    console.error('error connecting: ' + err.stack);
-                    reject(err);
-                }
-                console.log('connected as id ' + connection.threadId);
-                resolve(result)
-            })
-        }).catch((err) => {throw err})
-    );
-
-    const query = (q) => (
-        new Promise((resolve, reject) => {
-            connection.query(q, (err, result) => {
-                if (err) {
-                    reject(err);
-                }
-                resolve(result)
-            })
-        }).catch((err) => {throw err})
-    );
-
-    await connect();
+    await connect(connection);
 
     // Read Model Definition
     let queries;
@@ -52,15 +30,16 @@ const fs = require('fs');
         // Extract table name
         const raw_table = q.split(' ')[2];
         const table = raw_table.substring(1, raw_table.length - 3);
+        const localQ = `DROP TABLE ${table}`;
         try {
-            const result = await query(`DROP TABLE ${table}`);
+            const result = await query(connection, localQ);
             console.log(`[${index}] Query`);
-            console.log(q);
+            console.log(localQ);
             console.log(`[${index}] Result`);
             console.log(result);
         } catch (error) {
             console.error(`[${index}] Query`);
-            console.error(q);
+            console.error(localQ);
             console.error(`[${index}] Error`);
             console.error(error);
         } finally {

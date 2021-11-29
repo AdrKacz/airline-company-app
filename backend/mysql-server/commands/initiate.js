@@ -1,5 +1,6 @@
 const mysql = require('mysql');
 const fs = require('fs');
+const {connect, query} = require('../helpers/mysql-helpers');
 
 (async () => {
     const connection = mysql.createConnection({
@@ -9,31 +10,7 @@ const fs = require('fs');
         database: 'airlineapp',
     });
 
-    const connect = () => (
-        new Promise((resolve, reject) => {
-            connection.connect((err, result) => {
-                if (err) {
-                    console.error('error connecting: ' + err.stack);
-                    reject(err);
-                }
-                console.log('connected as id ' + connection.threadId);
-                resolve(result)
-            })
-        }).catch((err) => {throw err})
-    );
-
-    const query = (q) => (
-        new Promise((resolve, reject) => {
-            connection.query(q, (err, result) => {
-                if (err) {
-                    reject(err);
-                }
-                resolve(result)
-            })
-        }).catch((err) => {throw err})
-    );
-
-    await connect();
+    await connect(connection);
 
     // Read Model Definition
     let queries;
@@ -50,7 +27,7 @@ const fs = require('fs');
     for (let index = 0; index < queries.length - 1; index++) {
         const q = queries[index].replace(/^\s+|\s+$/g, '');
         try {
-            const result = await query(q);
+            const result = await query(connection, q);
             console.log(`[${index}] Query`);
             console.log(q);
             console.log(`[${index}] Result`);

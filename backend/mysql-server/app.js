@@ -1,14 +1,37 @@
 const express = require('express');
 const cors = require('cors');
+
+const bodyParser = require('body-parser');
+
+const mysql = require('mysql');
+const {connect, end,  query} = require('./helpers/mysql-helpers');
+const connection = mysql.createConnection({
+    host: 'localhost',
+        user: 'root',
+        password: 'password',
+        database: 'airlineapp',
+});
+connect(connection);
+
 const app = express();
 const port = 8080;
 
-async function getObjects(name) {
-    return [{
-        id: 1,
-        name: 'Aaa Bbb Ccc ' + name,
+async function getObjects(object) {
+    const result = await query(connection, 'SELECT * FROM ??', [object])
+    return result;
+}
+
+async function getObject(object, objectId) {
+    return {
+        id: objectId,
+        name: 'Aaa Bbb Ccc ' + object,
         code: 'ABC',
-    }]
+    }
+}
+
+async function insertObject(object, values) {
+    const result = await query(connection, 'INSERT INTO ?? SET ?', [object, values])
+    return result;
 }
 
 app.use(cors());
@@ -16,6 +39,73 @@ app.use(cors());
 app.use((req, res, next) => {
     console.log(`[${req.method}] ${req.url}`);
     next();
+});
+
+app.use(bodyParser.json());
+const allowedName = [
+    'airport',
+    'employee',
+    'connection',
+    'airplane',
+    'flight',
+    'pilot',
+    'crewmember',
+    'departure',
+    'consumer'
+];
+app.post('/create', async (req, res) => {
+    console.log(req.body);
+    const object = req.body.object.replace('-', '');
+    console.log(object, allowedName.includes(object))
+    if (!allowedName.includes(object)) {
+        res.status(400);
+        res.json({msg:'This object cannot be created'});
+        return;
+    }
+
+    // Create object
+    await insertObject(object, req.body.data).catch((err) => res.status(400));
+    res.json({msg:'Create'});
+});
+app.post('/update', async (req, res) => {
+    console.log(req.body);
+    const object = req.body.object.replace('-', '');
+    console.log(object, allowedName.includes(object))
+    if (!allowedName.includes(object)) {
+        res.status(400);
+        res.json({msg:'This object type cannot be updated'});
+        return;
+    }
+    const objectId = req.body.objectId;
+    const item = await getObject(object, objectId);
+    if (!item) {
+        res.status(400);
+        res.json({msg:'Item cannot be found'});
+        return;
+    }
+
+    // Update object
+    res.json({msg:'Update'});
+});
+app.post('/delete', async (req, res) => {
+    console.log(req.body);
+    const object = req.body.object.replace('-', '');
+    console.log(object, allowedName.includes(object))
+    if (!allowedName.includes(object)) {
+        res.status(400);
+        res.json({msg:'This object type cannot be delete'});
+        return;
+    }
+    const objectId = req.body.objectId;
+    const item = await getObject(object, objectId);
+    if (!item) {
+        res.status(400);
+        res.json({msg:'Item cannot be found'});
+        return;
+    }
+
+    // Delete object
+    res.json({msg:'Delete'});
 });
 
 app.get('/flights/airports/:from-:to/date/:date', (req, res) => {
@@ -45,55 +135,55 @@ app.get('/flights/airports/:from-:to/date/:date', (req, res) => {
 
 app.get('/airports', async (req, res) => {
     res.status(200);
-    objects = await getObjects('airports')
+    objects = await getObjects('airport')
     res.json(objects);
 });
 
 app.get('/employees', async (req, res) => {
     res.status(200);
-    objects = await getObjects('employees')
+    objects = await getObjects('employee')
     res.json(objects);
 });
 
 app.get('/connections', async (req, res) => {
     res.status(200);
-    objects = await getObjects('connections')
+    objects = await getObjects('connection')
     res.json(objects);
 });
 
 app.get('/airplanes', async (req, res) => {
     res.status(200);
-    objects = await getObjects('airplanes')
+    objects = await getObjects('airplane')
     res.json(objects);
 });
 
 app.get('/flights', async (req, res) => {
     res.status(200);
-    objects = await getObjects('flights')
+    objects = await getObjects('flight')
     res.json(objects);
 });
 
 app.get('/pilots', async (req, res) => {
     res.status(200);
-    objects = await getObjects('pilots')
+    objects = await getObjects('pilot')
     res.json(objects);
 });
 
 app.get('/crew-members', async (req, res) => {
     res.status(200);
-    objects = await getObjects('crew-members')
+    objects = await getObjects('crewmember')
     res.json(objects);
 });
 
 app.get('/departures', async (req, res) => {
     res.status(200);
-    objects = await getObjects('departures')
+    objects = await getObjects('departure')
     res.json(objects);
 });
 
 app.get('/consumers', async (req, res) => {
     res.status(200);
-    objects = await getObjects('consumers')
+    objects = await getObjects('consumer')
     res.json(objects);
 });
 
