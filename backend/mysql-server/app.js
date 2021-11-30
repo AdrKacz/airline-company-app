@@ -13,6 +13,18 @@ const connection = mysql.createConnection({
 });
 connect(connection);
 
+const allowedName = [
+    'airport',
+    'employee',
+    'connection',
+    'airplane',
+    'flight',
+    'pilot',
+    'crewmember',
+    'departure',
+    'consumer'
+];
+
 const app = express();
 const port = 8080;
 
@@ -29,8 +41,26 @@ async function getObject(object, objectId) {
     }
 }
 
+function parsedValues(values) {
+    const parsed = {};
+    Object.entries(values).forEach(([key, value]) => {
+        parsed[key.replace(/-/g, '_')] = value
+    });
+    return parsed;
+}
+
 async function insertObject(object, values) {
-    const result = await query(connection, 'INSERT INTO ?? SET ?', [object, values])
+    const result = await query(connection, 'INSERT INTO ?? SET ?', [object, parsedValues(values)])
+    return result;
+}
+
+async function updateObject(object, values, objectId) {
+    const result = await query(connection, 'UPDATE ?? SET ? WHERE id = ?', [object, parsedValues(values), objectId])
+    return result;
+}
+
+async function deleteObject(object, objectId) {
+    const result = await query(connection, 'DELETE FROM ?? WHERE id = ?', [object, objectId])
     return result;
 }
 
@@ -42,17 +72,7 @@ app.use((req, res, next) => {
 });
 
 app.use(bodyParser.json());
-const allowedName = [
-    'airport',
-    'employee',
-    'connection',
-    'airplane',
-    'flight',
-    'pilot',
-    'crewmember',
-    'departure',
-    'consumer'
-];
+
 app.post('/create', async (req, res) => {
     console.log(req.body);
     const object = req.body.object.replace('-', '');
@@ -64,8 +84,11 @@ app.post('/create', async (req, res) => {
     }
 
     // Create object
-    await insertObject(object, req.body.data).catch((err) => res.status(400));
+    const data = req.body.data;
+    delete data.id;
+    await insertObject(object, data).catch((err) => {console.error(err); res.status(400)});
     res.json({msg:'Create'});
+    
 });
 app.post('/update', async (req, res) => {
     console.log(req.body);
@@ -77,6 +100,7 @@ app.post('/update', async (req, res) => {
         return;
     }
     const objectId = req.body.objectId;
+    // Check for untrusted data
     const item = await getObject(object, objectId);
     if (!item) {
         res.status(400);
@@ -85,6 +109,9 @@ app.post('/update', async (req, res) => {
     }
 
     // Update object
+    const data = req.body.data;
+    delete data.id;
+    await updateObject(object, data, objectId).catch((err) => {console.error(err); res.status(400)});
     res.json({msg:'Update'});
 });
 app.post('/delete', async (req, res) => {
@@ -93,10 +120,11 @@ app.post('/delete', async (req, res) => {
     console.log(object, allowedName.includes(object))
     if (!allowedName.includes(object)) {
         res.status(400);
-        res.json({msg:'This object type cannot be delete'});
+        res.json({msg:'This object type cannot be deleted'});
         return;
     }
     const objectId = req.body.objectId;
+    // Check for untrusted data
     const item = await getObject(object, objectId);
     if (!item) {
         res.status(400);
@@ -105,6 +133,7 @@ app.post('/delete', async (req, res) => {
     }
 
     // Delete object
+    await deleteObject(object, objectId).catch((err) => {console.error(err); res.status(400)});
     res.json({msg:'Delete'});
 });
 

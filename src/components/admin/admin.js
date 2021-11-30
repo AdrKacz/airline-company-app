@@ -38,19 +38,19 @@ const databaseSchema = {
 
     'connection': {
         'fields': [
-            ['departure-airport', '$airport$name'],
-            ['arrival-airport', '$airport$name'],
+            ['departure-airport-id', '$airport$name'],
+            ['arrival-airport-id', '$airport$name'],
         ]
     },
     'pilot': {
         'fields': [
-            ['employee', '$employee$name.surname'],
+            ['employee-id', '$employee$name.surname'],
             ['license-number', 'text'],
         ]
     },
     'crew-member': {
         'fields': [
-            ['employee', '$employee$name.surname'],
+            ['employee-id', '$employee$name.surname'],
             ['role', 'text'],
         ]
     },
@@ -60,8 +60,8 @@ const databaseSchema = {
             ['from', 'date'],
             ['to', 'date'],
             ['number', 'number'],
-            ['connection', '$connection$id'],
-            ['airplane', '$airplane$number'],
+            ['connection-id', '$connection$id'],
+            ['airplane-id', '$airplane$number'],
             ['departure-day', 'text'],
             ['arrival-day', 'text'],
             ['departure-time', 'time'],
@@ -71,12 +71,12 @@ const databaseSchema = {
     
     'departure': {
         'fields': [
-            ['flight', '$flight$from.to'],
+            ['flight-id', '$flight$from.to'],
             ['date', 'date'],
-            ['pilot', '$pilot$name.surname'],
-            ['optional-pilot', '$pilot$name.surname'],
-            ['first-crew-member', '$crew-member$name.surname'],
-            ['second-crew-member', '$crew-member$name.surname'],
+            ['pilot-id', '$pilot$name.surname'],
+            ['optional-pilot-id', '$pilot$name.surname'],
+            ['first-crew-member-id', '$crew-member$name.surname'],
+            ['second-crew-member-id', '$crew-member$name.surname'],
             ['number-of-empty-seat', 'number'],
             ['number-of-reserved-seat', 'number'],
         ]
@@ -87,8 +87,8 @@ const databaseSchema = {
             ['number', 'number'],
             ['date-time-of-issue', 'datetime-local'],
             ['price', 'number'],
-            ['departure', '$departure$date'],
-            ['consumer', '$consumer$date'],
+            ['departure-id', '$departure$date'],
+            ['consumer-id', '$consumer$date'],
         ]
     },
 }
@@ -97,7 +97,7 @@ function Admin() {
     const [state, setState] = useState('create');
 
     const [editedObject, setEditedObject] = useState({});
-    const objects = useObjects([
+    const [objects, reload] = useObjects([
         'airports',
         'employees',
         'connections',
@@ -110,10 +110,21 @@ function Admin() {
     ]);
 
     function handleTabClick(name) {
+        setEditedObject({}); // remove if you want edit to be persitent across tabs
         setState(name);
     }
 
     function handleChangeObject(object, field, value) {
+        if (field === 'id') {
+            setEditedObject({
+                ...editedObject,
+                [object]: {
+                    [field]: parseInt(value),
+                },
+            });
+            return;
+        }
+
         if (editedObject[object]) {
             setEditedObject({
                 ...editedObject,
@@ -133,6 +144,8 @@ function Admin() {
     }
 
     async function handleSubmitCreateObject(object) {
+        // TODO: Display message when create did not succeed (never)
+        // TODO: Do not submit if one field is undefined 
         const responseJSON = await fetch('http://127.0.0.1:8080/create', {
             method: 'POST',
             headers: {
@@ -143,11 +156,13 @@ function Admin() {
                 data: editedObject[object]
             }),
         }).then(response => response.json());
-
+        await reload();
         console.log(responseJSON);
     }
 
     async function handleSubmitUpdateObject(object) {
+        // TODO: Display message when update did not succeed (never)
+        // TODO: Do not submit if one field is undefined 
         const responseJSON = await fetch('http://127.0.0.1:8080/update', {
             method: 'POST',
             headers: {
@@ -159,11 +174,12 @@ function Admin() {
                 data: editedObject[object],
             }),
         }).then(response => response.json());
-
+        await reload()
         console.log(responseJSON);
     }
 
     async function handleSubmitDeleteObject(object) {
+        // TODO: Display message when delete did not succeed
         const responseJSON = await fetch('http://127.0.0.1:8080/delete', {
             method: 'POST',
             headers: {
@@ -174,7 +190,7 @@ function Admin() {
                 objectId: editedObject[object].id
             }),
         }).then(response => response.json());
-
+        await reload();
         console.log(responseJSON);
     }
 
@@ -196,6 +212,7 @@ function Admin() {
                                         className='form-select'
                                         id={`floatingselect$${key}$${field}`}
                                     >
+                                        <option>...</option>
                                         {(objects[localObject + 's'] || []).map((o, i) => (
                                             <option key={`floatingselect$${key}$${field}$${i}`} value={o.id}>{localFields.map(f => o[f]).join(' ')}</option>
                                         ))}
@@ -212,7 +229,7 @@ function Admin() {
                                         className='form-control'
                                         id={`floating$${key}$${field}`}
                                         placeholder={field}
-                                        value={editedObject[key] ? editedObject[key][field] : ''}
+                                        value={editedObject[key] && editedObject[key][field] ? editedObject[key][field] : ''}
                                         required/>
                                     <label htmlFor={`floating$${key}$${field}`}>{capitalize(field)}</label>
                                 </div>
@@ -225,31 +242,46 @@ function Admin() {
             ));
     } else if (state === 'update') {
         forms = Object.entries(databaseSchema).map(([key, value], i) => (
-            <form key={i} className='mb-5' onSubmit={(e) => {e.preventDefault(); handleSubmitCreateObject(key)}}>
+            <form key={i} className='mb-5' onSubmit={(e) => {e.preventDefault(); handleSubmitUpdateObject(key)}}>
                 <h4 className='mb-3'>{capitalize(key)}</h4>
-                <div key={`selectmain$${i}`} className='form-floating mb-3'>
+                <div key={`selectmainupdate$${i}`} className='form-floating mb-3'>
                     <select
                             value={editedObject[key] ? editedObject[key].id : undefined}
-                            onChange={({target}) => (handleChangeObject(key, 'id', parseInt(target.value)))}
+                            onChange={({target}) => (handleChangeObject(key, 'id', target.value))}
                             className='form-select'
-                            id={`floatingselectmain${key}`}
+                            id={`floatingselectmainupdate${key}`}
                         >
                             <option>...</option>
                             {(objects[key + 's'] || []).map((o, k) => (
-                                <option key={`floatingselectmain$${key}$${k}`} value={o.id}>{o.id}</option>
+                                <option key={`floatingselectmainupdate$${key}$${k}`} value={o.id}>{o.id}</option>
                             ))}
                     </select>
-                    <label htmlFor={`floatingselectmain$${key}`}>{capitalize(key)}</label>
+                    <label htmlFor={`floatingselectmainupdate$${key}`}>{capitalize(key)}</label>
                 </div>
                 {editedObject[key] && editedObject[key].id &&
                     value.fields.map(([field, type], j) => {
                         if (type[0] === '$') {
                             const [localObject, localFieldsString] = type.slice(1).split('$');
                             const localFields = localFieldsString.split('.')
+
+                            let value;
+                            if (editedObject[key]) {
+                                if (editedObject[key][field]) {
+                                    value = editedObject[key][field]
+                                } else {
+                                    const item = (objects[key + 's'] || []).find(el => el.id === editedObject[key].id);
+                                    console.log('Update item', item);
+                                    if (item) {
+                                        value = item[field];
+                                    }
+                                }
+                            }
+                            console.log('Update', value);
+                            
                             return (
                                 <div key={`${i}$${j}`} className='form-floating mb-3'>
                                     <select
-                                        value={editedObject[key] ? editedObject[key][field] : undefined}
+                                        value={value}
                                         onChange={({target}) => (handleChangeObject(key, field, target.value))}
                                         className='form-select'
                                         id={`floatingselect$${key}$${field}`}
@@ -263,7 +295,6 @@ function Admin() {
                             );
                         } else {
                             let value = '';
-                            console.log('---', key)
                             if (editedObject[key]) {
                                 if (editedObject[key][field]) {
                                     value = editedObject[key][field]
@@ -297,16 +328,16 @@ function Admin() {
         forms = Object.entries(databaseSchema).map(([key, value], i) => (
             <form key={i} className='mb-5' onSubmit={(e) => {e.preventDefault(); handleSubmitDeleteObject(key)}}>
                 <h4 className='mb-3'>{capitalize(key)}</h4>
-                <div key={`selectmain$${i}`} className='form-floating mb-3'>
+                <div key={`selectmaindelete$${i}`} className='form-floating mb-3'>
                     <select
                         value={editedObject[key] ? editedObject[key].id : undefined}
-                        onChange={({target}) => (handleChangeObject(key, 'id', parseInt(target.value)))}
+                        onChange={({target}) => (handleChangeObject(key, 'id', target.value))}
                         className='form-select'
-                        id={`floatingselectmain$${key}`}
+                        id={`floatingselectmaindelete$${key}`}
                     >
                         <option>...</option>
                         {(objects[key + 's'] || []).map((o, k) => (
-                            <option key={`floatingselectmain$${key}$${k}`} value={o.id}>{o.id}</option>
+                            <option key={`floatingselectmaindelete$${key}$${k}`} value={o.id}>{o.id}</option>
                         ))}
                     </select>
                     <label htmlFor={`floatingselectmain$${key}`}>{capitalize(key)}</label>

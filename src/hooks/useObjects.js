@@ -32,9 +32,9 @@ function useObjects(names) {
             lastMountedNames.push(name);
         };
     });
-  
-    // API Request
-    useEffect(() => {
+
+    function loadData() {
+      console.log('RELOAD')
       let isMounted = true;
       const keys = lastMountedNames;
       Promise.all(keys.map((key, ) => (
@@ -47,7 +47,14 @@ function useObjects(names) {
 
         const localObjects = {}
         responses.forEach((response, index) => {
-            localObjects[keys[index]] = response
+            const localResponse = response.map((item) => {
+              const localItem = {};
+              Object.entries(item).forEach(([key, value]) => {
+                localItem[key.replace(/_/g, '-')] = value
+              });
+              return localItem;
+            })
+            localObjects[keys[index]] = localResponse;
         });
         setObjects(localObjects);
       }).catch(err => {
@@ -57,10 +64,12 @@ function useObjects(names) {
       return () => {
         isMounted = false;
       };
+    }
   
-    }, []);
+    // API Request
+    useEffect(loadData, []);
   
-    return objects;
+    return [objects, loadData];
   }
   
   export default useObjects;
