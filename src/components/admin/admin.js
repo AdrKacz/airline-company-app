@@ -147,6 +147,22 @@ function Admin() {
         console.log(responseJSON);
     }
 
+    async function handleSubmitUpdateObject(object) {
+        const responseJSON = await fetch('http://127.0.0.1:8080/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                object: object,
+                objectId: editedObject[object] && editedObject[object].id,
+                data: editedObject[object],
+            }),
+        }).then(response => response.json());
+
+        console.log(responseJSON);
+    }
+
     async function handleSubmitDeleteObject(object) {
         const responseJSON = await fetch('http://127.0.0.1:8080/delete', {
             method: 'POST',
@@ -155,7 +171,7 @@ function Admin() {
             },
             body: JSON.stringify({
                 object: object,
-                objectId: editedObject[object]
+                objectId: editedObject[object].id
             }),
         }).then(response => response.json());
 
