@@ -20,9 +20,9 @@ function SignIn({previousState}) {
     setPassword(target.value);
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    signIn(email, password);
+    await signIn(email, password);
     previousState();
   }
 

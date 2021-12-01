@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 
+import { apiendpoint } from '../constants';
+
 const url = (object) => (
-  `http://127.0.0.1:8080/${object}`
+  `${apiendpoint}/${object}`
 );
 
 const fetchAPI = async(object) => {
@@ -34,7 +36,6 @@ function useObjects(names) {
     });
 
     function loadData() {
-      console.log('RELOAD')
       let isMounted = true;
       const keys = lastMountedNames;
       Promise.all(keys.map((key, ) => (

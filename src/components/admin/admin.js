@@ -1,6 +1,9 @@
 import { useState } from 'react';
 
+import { apiendpoint } from '../../constants';
+
 import useObjects from '../../hooks/useObjects.js';
+import useUser from '../../hooks/useUser.js';
 
 const capitalize = (string) => (
     string.split('-').map((word, i) => (word[0].toUpperCase() + word.slice(1))).join(' ')
@@ -95,6 +98,7 @@ const databaseSchema = {
 
 function Admin() {
     const [state, setState] = useState('create');
+    const [user, , ] = useUser();
 
     const [editedObject, setEditedObject] = useState({});
     const [objects, reload] = useObjects([
@@ -146,12 +150,13 @@ function Admin() {
     async function handleSubmitCreateObject(object) {
         // TODO: Display message when create did not succeed (never)
         // TODO: Do not submit if one field is undefined 
-        const responseJSON = await fetch('http://127.0.0.1:8080/create', {
+        const responseJSON = await fetch(apiendpoint + '/admin/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                token: user.token,
                 object: object,
                 data: editedObject[object]
             }),
@@ -163,12 +168,13 @@ function Admin() {
     async function handleSubmitUpdateObject(object) {
         // TODO: Display message when update did not succeed (never)
         // TODO: Do not submit if one field is undefined 
-        const responseJSON = await fetch('http://127.0.0.1:8080/update', {
+        const responseJSON = await fetch(apiendpoint + '/admin/update', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                token: user.token,
                 object: object,
                 objectId: editedObject[object] && editedObject[object].id,
                 data: editedObject[object],
@@ -180,12 +186,13 @@ function Admin() {
 
     async function handleSubmitDeleteObject(object) {
         // TODO: Display message when delete did not succeed
-        const responseJSON = await fetch('http://127.0.0.1:8080/delete', {
+        const responseJSON = await fetch(apiendpoint + '/admin/delete', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                token: user.token,
                 object: object,
                 objectId: editedObject[object].id
             }),

@@ -41,7 +41,7 @@ function App() {
       {appState === 'checkout' && <Checkout completionState={() => changeAppState('completion')}/>}
       {appState === 'completion' && <Completion homeState={() => changeAppState('home')}/>}
       {appState === 'signin' && <SignIn previousState={() => changeAppState(previousAppState)}/>}
-      {appState === 'profile' && <Profile/>}
+      {appState === 'profile' && <Profile previousState={() => changeAppState(previousAppState)}/>}
       {appState === 'admin' && <Admin/>}
       <Footer />
     </>

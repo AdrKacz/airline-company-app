@@ -1,8 +1,11 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 
 const bodyParser = require('body-parser');
 
+// ===== ===== ===== ===== =====
+// Connection to SQL Database
 const mysql = require('mysql');
 const {connect, end,  query} = require('./helpers/mysql-helpers');
 const connection = mysql.createConnection({
@@ -13,6 +16,13 @@ const connection = mysql.createConnection({
 });
 connect(connection);
 
+// ===== ===== ===== ===== =====
+// Create App API
+const app = express();
+const port = 8080;
+
+// ===== ===== ===== ===== =====
+// Functions to access SQL Database
 const allowedName = [
     'airport',
     'employee',
@@ -24,9 +34,6 @@ const allowedName = [
     'departure',
     'consumer'
 ];
-
-const app = express();
-const port = 8080;
 
 async function getObjects(object) {
     const result = await query(connection, 'SELECT * FROM ??', [object])
@@ -64,6 +71,8 @@ async function deleteObject(object, objectId) {
     return result;
 }
 
+// ===== ===== ===== ===== =====
+// App level middleware
 app.use(cors());
 
 app.use((req, res, next) => {
@@ -73,7 +82,28 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 
-app.post('/create', async (req, res) => {
+// ===== ===== ===== ===== =====
+// Router for needed authentication as admin
+const adminRouter = express.Router();
+
+// Auth middleware - Secret should not be here, only for dev purpose ;)
+adminRouter.use((req, res, next) => {
+    console.log('Admin Requested Access');
+    if (req.body && req.body.token) {
+        const decoded = jwt.verify(req.body.token, 'secret');
+        if (decoded && decoded.role === 'admin') {
+            next();
+        } else {
+            res.status(401);
+            res.json({msg:'Auth Token not valid'});
+        }
+    } else {
+        res.status(401);
+        res.json({msg:'Auth Token not found'});
+    }    
+});
+
+adminRouter.post('/create', async (req, res) => {
     console.log(req.body);
     const object = req.body.object.replace('-', '');
     console.log(object, allowedName.includes(object))
@@ -90,7 +120,7 @@ app.post('/create', async (req, res) => {
     res.json({msg:'Create'});
     
 });
-app.post('/update', async (req, res) => {
+adminRouter.post('/update', async (req, res) => {
     console.log(req.body);
     const object = req.body.object.replace('-', '');
     console.log(object, allowedName.includes(object))
@@ -114,7 +144,7 @@ app.post('/update', async (req, res) => {
     await updateObject(object, data, objectId).catch((err) => {console.error(err); res.status(400)});
     res.json({msg:'Update'});
 });
-app.post('/delete', async (req, res) => {
+adminRouter.post('/delete', async (req, res) => {
     console.log(req.body);
     const object = req.body.object.replace('-', '');
     console.log(object, allowedName.includes(object))
@@ -137,6 +167,18 @@ app.post('/delete', async (req, res) => {
     res.json({msg:'Delete'});
 });
 
+app.use('/admin', adminRouter);
+
+// ===== ===== ===== ===== =====
+// Open API, no need to auth
+
+// Sign in
+app.post('/signin', (req, res) => {
+    const token = jwt.sign({ role: 'admin' }, 'secret');
+    res.json({status:'connected', token: token});
+});
+
+// Get Database
 app.get('/flights/airports/:from-:to/date/:date', (req, res) => {
     const flight = {
         from: req.params.from,
@@ -216,6 +258,8 @@ app.get('/consumers', async (req, res) => {
     res.json(objects);
 });
 
+// ===== ===== ===== ===== =====
+// Start API
 app.listen(port, () => {
     console.log(`App listening at http://localhost:${port}`);
 });

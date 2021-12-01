@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 
+import { apiendpoint } from '../constants';
+
 const url = () => (
-  `http://127.0.0.1:8080/airports`
+  `${apiendpoint}/airports`
 );
 
 const fetchAPI = async() => {

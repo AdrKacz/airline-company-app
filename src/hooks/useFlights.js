@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 
+import { apiendpoint } from '../constants';
+
 import useSearchInfo from './useSearchInfo.js';
 
 const url = (fromAirport, toAirport, date) => (
-  `http://127.0.0.1:8080/flights/airports/${fromAirport}-${toAirport}/date/${date.valueOf()}`
+  `${apiendpoint}/flights/airports/${fromAirport}-${toAirport}/date/${date.valueOf()}`
 );
 
 const fetchAPI = async(fromAirport, toAirport, date) => {
