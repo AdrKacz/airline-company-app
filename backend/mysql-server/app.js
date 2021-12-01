@@ -41,11 +41,8 @@ async function getObjects(object) {
 }
 
 async function getObject(object, objectId) {
-    return {
-        id: objectId,
-        name: 'Aaa Bbb Ccc ' + object,
-        code: 'ABC',
-    }
+    const result = await query(connection, 'SELECT * FROM ?? where id = ?', [object, objectId])
+    return result.length > 0 ? result[0] : undefined;
 }
 
 function parsedValues(values) {
@@ -180,7 +177,7 @@ app.post('/signin', (req, res) => {
 });
 
 // Get Database
-app.get('/flights/airports/:from-:to/date/:date', (req, res) => {
+app.get('/flights/airports/:from-:to/date/:date', async (req, res) => {
     const flight = {
         from: req.params.from,
         to: req.params.to,
@@ -192,16 +189,43 @@ app.get('/flights/airports/:from-:to/date/:date', (req, res) => {
         res.send('Not all params are defined');
         return;
     }
+    const dateInt = parseInt(flight.date)
+    if (!dateInt) { // 0 will never happen, if it does update the code (0 <-> 1970)
+        res.status(400);
+        res.send('Date isn\'t an interger');
+        return;
+    }
 
-    // DEV
+    // Request to database 
+    console.log(flight.from, flight.to)
+    const date = new Date(parseInt(dateInt));
+    const sqlQuery = `
+    SELECT departure.date, flight.departure_time, flight.arrival_time, a_departure.name as name_departure, a_arrival.name as name_arrival
+    FROM departure
+    LEFT JOIN flight ON departure.flight_id = flight.id
+    LEFT JOIN connection ON flight.connection_id = connection.id
+    LEFT JOIN airport a_departure ON connection.departure_airport_id = a_departure.id
+    LEFT JOIN airport a_arrival ON connection.arrival_airport_id = a_arrival.id
+    WHERE DATE(departure.date) = ? AND a_departure.id = ? AND a_arrival.id = ?
+    ORDER BY departure.date ASC
+    `;
+    const result = await query(connection, sqlQuery, [date.toJSON().slice(0, 10), flight.from, flight.to])
+    console.log('Result Flights')
+    console.log(result)
     res.status(200);
-    res.json([{
-        from: 'AAA',
-        to: 'BBB',
-        departure: new Date(),
-        arrival: new Date(Date.now() + 86400000 * Math.random()),
-        price: 50,
-    }]);
+    res.json(result.map(f => {
+        const [dh, dm, ds] = f.departure_time.split(':').map(s => parseInt(s));
+        const [ah, am, as] = f.arrival_time.split(':').map(s => parseInt(s));
+        const [departure, arrival] = [new Date(f.date), new Date(f.date)]
+        departure.setHours(dh, dm, ds);
+        arrival.setHours(ah, am, as);
+        return {
+        from: f.name_departure,
+        to: f.name_arrival,
+        departure: departure,
+        arrival: arrival,
+        price: 50, // can be calculated in function of time, distance, and user
+    }}));
     return;
 });
 

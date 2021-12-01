@@ -34,7 +34,7 @@ function Home({flightsState}) {
   const modifiers = { start: from, end: to };
 
   const airportOptions = (key) => (airports.map((airport, i) => (
-    <option key={`${key}.${i}`} value={airport.code}>{airport.name}</option>
+    <option key={`${key}.${i}`} value={airport.id}>{airport.name}</option>
   )));
 
   return (

@@ -24,6 +24,7 @@ function useAirports() {
       }
 
       const data = response.map(airport => ({
+        id: airport.id,
         name: airport.name,
         code: airport.code,
       }));

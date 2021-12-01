@@ -26,7 +26,7 @@ exports.end = (connection) => (
 
 exports.query = (connection, q, params) => (
     new Promise((resolve, reject) => {
-        connection.query({
+        const query = connection.query({
             sql: q,
             values: params,
         }, (err, result) => {
@@ -34,7 +34,8 @@ exports.query = (connection, q, params) => (
                 reject(err);
             }
             resolve(result)
-        })
+        });
+        console.log('Query: ', query.sql);
     }).catch((err) => {throw err})
 );
 
