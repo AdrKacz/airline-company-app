@@ -21,6 +21,7 @@ function useUser(auth=false) {
   function signOut() {
     user.isConnected = false;
     user.token = undefined;
+    user.isAdmin = undefined;
     user.email = undefined;
     user.password = undefined;
     setIsConnected(user.isConnected);
@@ -43,15 +44,13 @@ function useUser(auth=false) {
     if (responseJSON && responseJSON.status === 'connected') {
       user.isConnected = true;
       user.token = responseJSON.token;
+      user.isAdmin = responseJSON.isAdmin;
       user.email = email;
       user.password = password;
+      setIsConnected(user.isConnected);
     } else {
-      user.isConnected = false;
-      user.token = undefined;
-      user.email = undefined;
-      user.password = undefined;
+      signOut()
     }
-    setIsConnected(user.isConnected);
   }
 
   if (auth) {

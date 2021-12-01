@@ -174,8 +174,9 @@ app.use('/admin', adminRouter);
 
 // Sign in
 app.post('/signin', (req, res) => {
+    // Yep, everyone is admin for now
     const token = jwt.sign({ role: 'admin' }, 'secret');
-    res.json({status:'connected', token: token});
+    res.json({status:'connected', token: token, isAdmin: true});
 });
 
 // Get Database

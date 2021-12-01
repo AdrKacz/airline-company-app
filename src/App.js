@@ -26,11 +26,16 @@ function App() {
   if (appState === 'checkout' && !user.isConnected) {
     changeAppState('signin');
   }
+
+  if (appState === 'admin' && !user.isAdmin) {
+    setAppState('home'); // without redirect
+  }
   
   return (
     <>
       <Header
         isConnected={user.isConnected}
+        isAdmin={user.isAdmin}
         homeState={() => changeAppState('home')}
         signInState={() => changeAppState('signin')}
         profileState={() => changeAppState('profile')}

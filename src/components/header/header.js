@@ -1,4 +1,4 @@
-function Header({isConnected, homeState, signInState, profileState, adminState}) {
+function Header({isConnected, isAdmin, homeState, signInState, profileState, adminState}) {
   function handleClickHome(e) {
     e.preventDefault();
     homeState();
@@ -37,9 +37,11 @@ function Header({isConnected, homeState, signInState, profileState, adminState})
                 <button type='button' onClick={handleClickSignIn} className='btn nav-link link-dark px-2'>Sign in</button>
               </li>
             }
-            <li className='ms-auto nav-item'>
+            {isAdmin &&
+              <li className='ms-auto nav-item'>
                 <button type='button' onClick={handleClickAdmin} className='btn nav-link link-dark px-2'>Admin</button>
-            </li>
+              </li>
+            }            
           </ul>
         </div>
       </nav>
