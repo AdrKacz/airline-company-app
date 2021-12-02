@@ -25,7 +25,7 @@ const {connect, query} = require('../helpers/mysql-helpers');
     }
 
     // Loop over model synchronously to avoid dependency problem
-    for (let index = 0; index < queries.length - 1; index++) {
+    for (let index = queries.length - 2; index >= 0; index--) {
         const q = queries[index].replace(/^\s+|\s+$/g, '');
         // Extract table name
         const raw_table = q.split(' ')[2];

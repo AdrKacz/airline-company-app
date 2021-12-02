@@ -24,6 +24,7 @@ const port = 8080;
 // ===== ===== ===== ===== =====
 // Functions to access SQL Database
 const allowedName = [
+    'user',
     'airport',
     'employee',
     'connection',
@@ -240,6 +241,12 @@ app.get('/flights/airports/:from-:to/date/:date', async (req, res) => {
     res.status(200); 
     res.json(data);
     return;
+});
+
+app.get('/users', async (req, res) => {
+    res.status(200);
+    objects = await getObjects('user')
+    res.json(objects);
 });
 
 app.get('/airports', async (req, res) => {

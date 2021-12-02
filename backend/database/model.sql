@@ -1,3 +1,10 @@
+CREATE TABLE `User`(
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `email` VARCHAR(255) NOT NULL UNIQUE,
+    `password_hash` VARCHAR(255) NOT NULL,
+    `admin` BOOLEAN NOT NULL DEFAULT FALSE
+);
+
 CREATE TABLE `Airport`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(255) NOT NULL,
@@ -16,14 +23,18 @@ CREATE TABLE `Employee`(
     `surname` VARCHAR(255) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `address` TEXT NOT NULL,
-    `salary` INT NOT NULL
+    `salary` INT NOT NULL,
+    `user_id` INT UNSIGNED NOT NULL,
+    FOREIGN KEY(`user_id`) REFERENCES `User`(`id`)
 );
 
 CREATE TABLE `Consumer`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `number` INT NOT NULL UNIQUE,
     `surname` VARCHAR(255) NOT NULL,
-    `name` VARCHAR(255) NOT NULL
+    `name` VARCHAR(255) NOT NULL,
+    `user_id` INT UNSIGNED NOT NULL,
+    FOREIGN KEY(`user_id`) REFERENCES `User`(`id`)
 );
 
 CREATE TABLE `Connection`(

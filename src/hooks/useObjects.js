@@ -12,6 +12,7 @@ const fetchAPI = async(object) => {
 };
 
 const allowedName = [
+    'users',
     'airports',
     'employees',
     'connections',

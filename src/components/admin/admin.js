@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { createHash } from 'crypto';
+
 import { apiendpoint } from '../../constants';
 
 import useObjects from '../../hooks/useObjects.js';
@@ -10,6 +12,12 @@ const capitalize = (string) => (
 );
 
 const databaseSchema = {
+    'user': {
+        'fields': [
+            ['email', 'text'],
+            ['password-hash', 'text']
+        ]
+    },
     'airport': {
         'fields': [
             ['name', 'text'],
@@ -29,6 +37,7 @@ const databaseSchema = {
             ['name', 'text'],
             ['address', 'text'],
             ['salary', 'number'],
+            ['user-id', '$user$email'],
         ]
     },
     'consumer': {
@@ -36,6 +45,7 @@ const databaseSchema = {
             ['number', 'number'],
             ['surname', 'text'],
             ['name', 'text'],
+            ['user-id', '$user$email'],
         ]
     },
 
@@ -98,10 +108,13 @@ const databaseSchema = {
 
 function Admin() {
     const [state, setState] = useState('create');
+    const [showCollapse, setShowCollapse] = useState(false);
+    const [rawHash, setRawHash] = useState('');
     const [user, , ] = useUser();
 
     const [editedObject, setEditedObject] = useState({});
     const [objects, reload] = useObjects([
+        'users',
         'airports',
         'employees',
         'connections',
@@ -112,6 +125,10 @@ function Admin() {
         'departures',
         'consumers'
     ]);
+
+    function handleCollapseClick() {
+        setShowCollapse(!showCollapse);
+    }
 
     function handleTabClick(name) {
         setEditedObject({}); // remove if you want edit to be persitent across tabs
@@ -375,6 +392,31 @@ function Admin() {
                 <button onClick={(e) => (handleTabClick('delete'))} type='button' className={tabClassName('delete')}>Delete</button>
             </li>
         </ul>
+        <div className='mb-3'>
+            <button
+                className="btn btn-outline-primary mb-3"
+                onClick={handleCollapseClick}
+            >
+                {showCollapse? 'Hide' : 'Show'} help to hash input
+            </button>
+            <div className={`collapse${showCollapse ? '.show' : ''}`}>
+                <div className="card card-body">
+                    <div className='form-floating mb-3'>
+                        <input
+                            onChange={({target}) => (setRawHash(target.value))}
+                            type='text'
+                            className='form-control'
+                            value={rawHash}
+                            placeholder='Raw Hash'
+                            id='hashhelper'
+                        />
+                        <label htmlFor='hashhelper'>Raw input</label>
+                    </div>
+                    <h6 class="card-subtitle mb-2 text-muted">Raw input hashed</h6>
+                    <p className='card-text'>{createHash('sha256').update(rawHash).digest('hex')}</p>  
+                </div>
+            </div>
+        </div>
         {forms}
         </main>
     </div>

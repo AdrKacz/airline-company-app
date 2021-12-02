@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useState } from 'react';
+
+import { createHash } from 'crypto';
 
 import { apiendpoint } from '../constants';
 
@@ -33,8 +35,10 @@ function useUser(auth=false) {
     setFlag(!flag);
   }
 
-  // TODO: Hash password
+  // TODO: Add Salt and Pepper ;)
   async function signIn(email, password) {
+    // Hash password
+    const passwordHash = createHash('sha256').update(password).digest('hex');
     // Ask for token
     const responseJSON = await fetch(apiendpoint + '/signin', {
       method: 'POST',
@@ -43,7 +47,7 @@ function useUser(auth=false) {
       },
       body: JSON.stringify({
           email: email,
-          password: password,
+          password: passwordHash,
       }),
     }).then(response => response.json());
 
