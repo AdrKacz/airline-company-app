@@ -25,7 +25,7 @@ CREATE TABLE `employee`(
     `address` TEXT NOT NULL,
     `salary` INT NOT NULL,
     `user_id` INT UNSIGNED NOT NULL,
-    FOREIGN KEY(`user_id`) REFERENCES `User`(`id`)
+    FOREIGN KEY(`user_id`) REFERENCES `user`(`id`)
 );
 
 CREATE TABLE `consumer`(
@@ -34,29 +34,29 @@ CREATE TABLE `consumer`(
     `surname` VARCHAR(255) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `user_id` INT UNSIGNED NOT NULL,
-    FOREIGN KEY(`user_id`) REFERENCES `User`(`id`)
+    FOREIGN KEY(`user_id`) REFERENCES `user`(`id`)
 );
 
 CREATE TABLE `connection`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `departure_airport_id` INT UNSIGNED NOT NULL,
     `arrival_airport_id` INT UNSIGNED NOT NULL,
-    FOREIGN KEY(`departure_airport_id`) REFERENCES `Airport`(`id`),
-    FOREIGN KEY(`arrival_airport_id`) REFERENCES `Airport`(`id`)
+    FOREIGN KEY(`departure_airport_id`) REFERENCES `airport`(`id`),
+    FOREIGN KEY(`arrival_airport_id`) REFERENCES `airport`(`id`)
 );
 
 CREATE TABLE `pilot`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `employee_id` INT UNSIGNED NOT NULL,
     `license_number` INT NOT NULL UNIQUE,
-    FOREIGN KEY(`employee_id`) REFERENCES `Employee`(`id`)
+    FOREIGN KEY(`employee_id`) REFERENCES `employee`(`id`)
 );
 
 CREATE TABLE `crewmember`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `employee_id` INT UNSIGNED NOT NULL,
     `role` VARCHAR(255) NOT NULL,
-    FOREIGN KEY(`employee_id`) REFERENCES `Employee`(`id`)
+    FOREIGN KEY(`employee_id`) REFERENCES `employee`(`id`)
 );
 
 
@@ -71,8 +71,8 @@ CREATE TABLE `flight`(
     `arrival_day` VARCHAR(255) NOT NULL,
     `departure_time` TIME NOT NULL,
     `arrival_time` TIME NOT NULL,
-    FOREIGN KEY(`connection_id`) REFERENCES `Connection`(`id`),
-    FOREIGN KEY(`airplane_id`) REFERENCES `Airplane`(`id`)
+    FOREIGN KEY(`connection_id`) REFERENCES `connection`(`id`),
+    FOREIGN KEY(`airplane_id`) REFERENCES `airplane`(`id`)
 );
 
 CREATE TABLE `departure`(
@@ -85,11 +85,11 @@ CREATE TABLE `departure`(
     `second_crew_member_id` INT UNSIGNED NOT NULL,
     `number_of_empty_seat` INT UNSIGNED NOT NULL,
     `number_of_reserved_seat` INT UNSIGNED NOT NULL,
-    FOREIGN KEY(`flight_id`) REFERENCES `Flight`(`id`),
-    FOREIGN KEY(`pilot_id`) REFERENCES `Pilot`(`id`),
-    FOREIGN KEY(`optional_pilot_id`) REFERENCES `Pilot`(`id`),
-    FOREIGN KEY(`first_crew_member_id`) REFERENCES `CrewMember`(`id`),
-    FOREIGN KEY(`second_crew_member_id`) REFERENCES `CrewMember`(`id`)
+    FOREIGN KEY(`flight_id`) REFERENCES `flight`(`id`),
+    FOREIGN KEY(`pilot_id`) REFERENCES `pilot`(`id`),
+    FOREIGN KEY(`optional_pilot_id`) REFERENCES `pilot`(`id`),
+    FOREIGN KEY(`first_crew_member_id`) REFERENCES `crewmember`(`id`),
+    FOREIGN KEY(`second_crew_member_id`) REFERENCES `crewmember`(`id`)
 );
 
 CREATE TABLE `ticket`(
@@ -99,6 +99,6 @@ CREATE TABLE `ticket`(
     `price` INT NOT NULL,
     `departure_id` INT UNSIGNED NOT NULL,
     `consumer_id` INT UNSIGNED NOT NULL,
-    FOREIGN KEY(`departure_id`) REFERENCES `Departure`(`id`),
-    FOREIGN KEY(`consumer_id`) REFERENCES `Consumer`(`id`)
+    FOREIGN KEY(`departure_id`) REFERENCES `departure`(`id`),
+    FOREIGN KEY(`consumer_id`) REFERENCES `consumer`(`id`)
 );
