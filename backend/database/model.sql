@@ -1,23 +1,23 @@
-CREATE TABLE `User`(
+CREATE TABLE `user`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `email` VARCHAR(255) NOT NULL UNIQUE,
     `password_hash` VARCHAR(255) NOT NULL,
     `admin` BOOLEAN NOT NULL DEFAULT FALSE
 );
 
-CREATE TABLE `Airport`(
+CREATE TABLE `airport`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(255) NOT NULL,
     `code` VARCHAR(255) NOT NULL UNIQUE
 );
 
-CREATE TABLE `Airplane`(
+CREATE TABLE `airplane`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `number` INT NOT NULL UNIQUE,
     `type` VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE `Employee`(
+CREATE TABLE `employee`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `security_number` INT NOT NULL UNIQUE,
     `surname` VARCHAR(255) NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE `Employee`(
     FOREIGN KEY(`user_id`) REFERENCES `User`(`id`)
 );
 
-CREATE TABLE `Consumer`(
+CREATE TABLE `consumer`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `number` INT NOT NULL UNIQUE,
     `surname` VARCHAR(255) NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE `Consumer`(
     FOREIGN KEY(`user_id`) REFERENCES `User`(`id`)
 );
 
-CREATE TABLE `Connection`(
+CREATE TABLE `connection`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `departure_airport_id` INT UNSIGNED NOT NULL,
     `arrival_airport_id` INT UNSIGNED NOT NULL,
@@ -45,14 +45,14 @@ CREATE TABLE `Connection`(
     FOREIGN KEY(`arrival_airport_id`) REFERENCES `Airport`(`id`)
 );
 
-CREATE TABLE `Pilot`(
+CREATE TABLE `pilot`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `employee_id` INT UNSIGNED NOT NULL,
     `license_number` INT NOT NULL UNIQUE,
     FOREIGN KEY(`employee_id`) REFERENCES `Employee`(`id`)
 );
 
-CREATE TABLE `CrewMember`(
+CREATE TABLE `crewmember`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `employee_id` INT UNSIGNED NOT NULL,
     `role` VARCHAR(255) NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE `CrewMember`(
 );
 
 
-CREATE TABLE `Flight`(
+CREATE TABLE `flight`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `from` DATE NOT NULL,
     `to` DATE NOT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE `Flight`(
     FOREIGN KEY(`airplane_id`) REFERENCES `Airplane`(`id`)
 );
 
-CREATE TABLE `Departure`(
+CREATE TABLE `departure`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `flight_id` INT UNSIGNED NOT NULL,
     `date` DATE NOT NULL,
@@ -92,7 +92,7 @@ CREATE TABLE `Departure`(
     FOREIGN KEY(`second_crew_member_id`) REFERENCES `CrewMember`(`id`)
 );
 
-CREATE TABLE `Ticket`(
+CREATE TABLE `ticket`(
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `number` INT NOT NULL UNIQUE,
     `date_time_of_issue` DATETIME NOT NULL,
