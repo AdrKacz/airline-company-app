@@ -1,13 +1,20 @@
 import useFlights from '../../hooks/useFlights.js';
 import useUser from '../../hooks/useUser.js';
+import useAirports from '../../hooks/useAirports';
 
 function Flights({checkoutState}) {
-  const flights = useFlights();
+  const airports = useAirports();
+  const [flights, details, setLookFirst] = useFlights();
   const [, setFlight, ] = useUser();
 
   function handleClickFlight(value) {
-      setFlight(flights[value].first);
-      checkoutState();
+      setFlight(flights[value]);
+      if (details.isFirst) {
+        setLookFirst(false)
+      } else {
+        checkoutState();
+      }
+      
   }
   
   const options = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'};
@@ -15,16 +22,17 @@ function Flights({checkoutState}) {
   return (
     <main className='flex-shrink-0'>
       <div className='container'>
-        <div className='mt-5'>
-          {flights.map(({first}, i) => (
+      <h2 className='my-3'>{airports[details.fromAirport].name} - {airports[details.toAirport].name}</h2>
+        <div>
+          {Object.values(flights).map((flight, i) => (
             <div key={i} className="card mb-3">
               <div className="card-body">
-                <h5 className="card-title">{`$${first.price}`}</h5>
+                <h5 className="card-title">{`$${flight.price}`}</h5>
                 <p className='card-text lead'>Departure</p>
-                <p className='card-text'>{first.departure.toLocaleDateString(undefined, options)}</p>
+                <p className='card-text'>{flight.departure.toLocaleDateString(undefined, options)}</p>
                 <p className='card-text lead'>Arrival</p>
-                <p className='card-text'>{first.arrival.toLocaleDateString(undefined, options)}</p>
-                <button onClick={() => handleClickFlight(i)} className="btn btn-primary">Book</button>
+                <p className='card-text'>{flight.arrival.toLocaleDateString(undefined, options)}</p>
+                <button onClick={() => handleClickFlight(flight.id)} className="btn btn-primary">Book</button>
               </div>
             </div>
           ))}

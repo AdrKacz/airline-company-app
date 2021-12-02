@@ -27,6 +27,12 @@ function Checkout({completionState}) {
     completionState();
   }
 
+  function getTotal() {
+    const totalWithoutDiscount = Object.values(user.flights).map(f => f.price).reduce((p, c) => (p + c), 0);
+    const totalDiscount = redeems.map(r => r.discount).reduce((p, c) => (p + c), 0);
+    return Math.max(totalWithoutDiscount - totalDiscount, 0);
+  }
+
   const options = {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'};
 
   return (
@@ -45,7 +51,7 @@ function Checkout({completionState}) {
               <span className='badge bg-primary rounded-pill'>3</span>
             </h4>
             <ul className='list-group mb-3'>
-              {user.flights.map((flight, i) => (
+              {Object.values(user.flights).map((flight, i) => (
                 <li key={`flight-${i}`} className='list-group-item d-flex justify-content-between lh-sm'>
                   <div>
                     <h6 className='my-0'>{`${flight.from} - ${flight.from}`}</h6>
@@ -66,7 +72,7 @@ function Checkout({completionState}) {
               }
               <li className='list-group-item d-flex justify-content-between'>
                 <span>Total (USD)</span>
-                <strong>$20</strong>
+                <strong>${getTotal()}</strong>
               </li>
             </ul>
 

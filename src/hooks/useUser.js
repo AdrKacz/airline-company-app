@@ -3,19 +3,24 @@ import { useState } from 'react'
 import { apiendpoint } from '../constants';
 
 // NOTE: Local Store
-let user = {isConnected:false, flights: []}
+let user = {isConnected:false, flights: {}}
 
 function useUser(auth=false) {
   // TODO: SQL
   const [, setIsConnected] = useState(user.isConnected);
   const [, setFlights] = useState(user.flights);
+  const [flag, setFlag] = useState(false); // to trigger the re-render pipeline
 
-  function setUserFlight(localFlight, trip='first') {
-    user.flights.push({
-      ...localFlight,
-      trip: trip,
-    });
+  function setUserFlight(localFlight) {
+    user.flights[localFlight.id] = localFlight;
     setFlights(user.flights);
+    setFlag(!flag);
+  }
+
+  function removeUserFlight(flightId) {
+    delete user.flights[flightId];
+    setFlights(user.flights);
+    setFlag(!flag);
   }
 
   function signOut() {
@@ -25,6 +30,7 @@ function useUser(auth=false) {
     user.email = undefined;
     user.password = undefined;
     setIsConnected(user.isConnected);
+    setFlag(!flag);
   }
 
   // TODO: Hash password
@@ -56,7 +62,7 @@ function useUser(auth=false) {
   if (auth) {
     return signIn
   } else {
-    return  [user, setUserFlight, signOut]
+    return  [user, setUserFlight, signOut, removeUserFlight, flag]
   }
 }
 

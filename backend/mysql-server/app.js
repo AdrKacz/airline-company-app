@@ -210,10 +210,11 @@ app.get('/flights/airports/:from-:to/date/:date', async (req, res) => {
     ORDER BY departure.date ASC
     `;
     const result = await query(connection, sqlQuery, [date.toJSON().slice(0, 10), flight.from, flight.to])
-    console.log('Result Flights')
-    console.log(result)
-    res.status(200);
-    res.json(result.map(f => {
+    console.log('Result Search Flights');
+    console.log(result);
+
+    // Map the result to correct type
+    const data = result.map(f => {
         const [dh, dm, ds] = f.departure_time.split(':').map(s => parseInt(s));
         const [ah, am, as] = f.arrival_time.split(':').map(s => parseInt(s));
         const [departure, arrival] = [new Date(f.date), new Date(f.date)]
@@ -225,7 +226,19 @@ app.get('/flights/airports/:from-:to/date/:date', async (req, res) => {
         departure: departure,
         arrival: arrival,
         price: 50, // can be calculated in function of time, distance, and user
-    }}));
+    }});
+    // DEV, for test only
+    data.push({
+        id: Math.floor(1000 * Math.random()),
+        from: 'From Test Name - ' + flight.from,
+        to: 'To Test Name - ' + flight.to,
+        departure: new Date(date),
+        arrival: new Date(date.valueOf() + 86400000 * Math.random()),
+        price: 25,
+    });
+
+    res.status(200); 
+    res.json(data);
     return;
 });
 

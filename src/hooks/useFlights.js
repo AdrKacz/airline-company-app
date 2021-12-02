@@ -14,39 +14,52 @@ const fetchAPI = async(fromAirport, toAirport, date) => {
 };
 
 function useFlights() {
+  const [lookFirst, setLookFirst] = useState(true);
   const [flights, setFlights] = useState([]);
   const [searchInfo, ] = useSearchInfo();
 
-  // API Request
-  useEffect(() => {
+  // Set looking flight
+  let fromAirport, toAirport, date;
+  if (lookFirst) {
+    [fromAirport, toAirport, date] = [searchInfo.fromAirport, searchInfo.toAirport, searchInfo.fromDate];
+  } else {
+    [fromAirport, toAirport, date] = [searchInfo.toAirport, searchInfo.fromAirport, searchInfo.toDate];
+  }
+  function loadFlights() {
+    // Fetch API
     let isMounted = true;
-    fetchAPI(searchInfo.fromAirport, searchInfo.toAirport, searchInfo.fromDate).then(response => {
-      // Avoid updating state if the component unmounted before the fetch completes
+    fetchAPI(fromAirport, toAirport, date).then(responseJSON => {
       if (!isMounted) {
         return;
       }
-
-      const data = response.map(flight => ({
-          first: {
-            from: flight.from,
-            to: flight.to,
-            departure: new Date(flight.departure),
-            arrival: new Date(flight.arrival),
-            price: flight.price,
-          },
-      }));
+      const data = {}
+      responseJSON.forEach(flight => {
+        data[flight.id] = {
+          id: flight.id,
+          from: flight.from,
+          to: flight.to,
+          departure: new Date(flight.departure),
+          arrival: new Date(flight.arrival),
+          price: flight.price,
+        };
+      });
       setFlights(data);
-    }).catch(err => {
-      console.error(err);
     });
 
     return () => {
       isMounted = false;
-    };
+    }; 
+  }
 
-  }, [searchInfo.fromAirport, searchInfo.toAirport, searchInfo.fromDate]);
+  // API Request
+  useEffect(loadFlights, [lookFirst, fromAirport, toAirport, date]);
 
-  return flights;
+  return [flights, {
+    isFirst: lookFirst,
+    fromAirport: fromAirport,
+    toAirport: toAirport,
+    date: date,
+  }, setLookFirst];
 }
 
 export default useFlights;

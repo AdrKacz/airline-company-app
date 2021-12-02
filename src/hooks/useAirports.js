@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 
 import { apiendpoint } from '../constants';
 
+let globalAirports = {};
+
 const url = () => (
   `${apiendpoint}/airports`
 );
@@ -12,7 +14,7 @@ const fetchAPI = async() => {
 };
 
 function useAirports() {
-  const [airports, setAirports] = useState([]);
+  const [airports, setAirports] = useState(globalAirports);
 
   // API Request
   useEffect(() => {
@@ -22,13 +24,16 @@ function useAirports() {
       if (!isMounted) {
         return;
       }
-
-      const data = response.map(airport => ({
-        id: airport.id,
-        name: airport.name,
-        code: airport.code,
-      }));
+      const data = {}
+      response.forEach(airport => {
+        data[airport.id] = {
+          id: airport.id,
+          name: airport.name,
+          code: airport.code,
+        }
+      });
       setAirports(data);
+      globalAirports = data;
     }).catch(err => {
       console.error(err);
     });

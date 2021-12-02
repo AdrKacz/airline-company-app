@@ -33,7 +33,8 @@ function Home({flightsState}) {
   const { from, to } = {from: searchInfo.fromDate, to: searchInfo.toDate};
   const modifiers = { start: from, end: to };
 
-  const airportOptions = (key) => (airports.map((airport, i) => (
+  
+  const airportOptions = (key) => (Object.values(airports).map((airport, i) => (
     <option key={`${key}.${i}`} value={airport.id}>{airport.name}</option>
   )));
 
@@ -82,7 +83,7 @@ function Home({flightsState}) {
               Ready to set the earth on fire?
             </div>
             <div className='card-body'>
-              <h5 className='card-title'>{searchInfo.fromAirport} - {searchInfo.toAirport}</h5>
+              <h5 className='card-title'>{airports[searchInfo.fromAirport].code} - {airports[searchInfo.toAirport].code}</h5>
               <p className='lead'>From</p>
               <p>{from.toLocaleDateString(undefined, options)}</p>
               {to && (<>
