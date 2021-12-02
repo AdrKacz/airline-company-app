@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -9,10 +11,10 @@ const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const {connect, end,  query} = require('./helpers/mysql-helpers');
 const connection = mysql.createConnection({
-    host: 'localhost',
-        user: 'root',
-        password: 'password',
-        database: 'airlineapp',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
 });
 connect(connection);
 
@@ -84,11 +86,11 @@ app.use(bodyParser.json());
 // Router for needed authentication as admin
 const adminRouter = express.Router();
 
-// Auth middleware - Secret should not be here, only for dev purpose ;)
+// Auth middleware
 adminRouter.use((req, res, next) => {
     console.log('Admin Requested Access');
     if (req.body && req.body.token) {
-        const decoded = jwt.verify(req.body.token, 'secret');
+        const decoded = jwt.verify(req.body.token, process.env.HASH_SECRET);
         if (decoded && decoded.role === 'admin') {
             next();
         } else {
@@ -170,7 +172,6 @@ app.use('/admin', adminRouter);
 // Open API, no need to auth
 
 // Sign in
-// TODO 'secret' to be change, and store somewhere else
 app.post('/signin', async (req, res) => {
     const {email, passwordHash} = req.body;
 
@@ -183,7 +184,7 @@ app.post('/signin', async (req, res) => {
     console.log('Result Search User');
     if (result.length > 0) {
         const user = result[0];
-        const token = jwt.sign({ role: user.admin ? 'admin' : '' }, 'secret');
+        const token = jwt.sign({ role: user.admin ? 'admin' : '' }, process.env.HASH_SECRET);
         res.json({status:'connected', token: token, isAdmin: user.admin ? true : false});
     } else {
         res.json({status:'not connected'});
