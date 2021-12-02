@@ -47,7 +47,7 @@ function useUser(auth=false) {
       },
       body: JSON.stringify({
           email: email,
-          password: passwordHash,
+          passwordHash: passwordHash,
       }),
     }).then(response => response.json());
 

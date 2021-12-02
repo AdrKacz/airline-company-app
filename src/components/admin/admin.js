@@ -15,7 +15,8 @@ const databaseSchema = {
     'user': {
         'fields': [
             ['email', 'text'],
-            ['password-hash', 'text']
+            ['password-hash', 'text'],
+            ['admin', 'bool']
         ]
     },
     'airport': {
@@ -244,6 +245,18 @@ function Admin() {
                                     <label htmlFor={`floatingselect$${key}$${field}`}>{capitalize(field)}</label>
                                 </div>
                             );
+                        } else if (type === 'bool') {
+                            return (
+                                <div key={`${i}$${j}`} className="form-check form-switch mb-3">
+                                    <input
+                                        onChange={({target}) => handleChangeObject(key, field, target.checked)}
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        role="switch"
+                                        id="flexSwitchCheckDefault"/>
+                                    <label className="form-check-label" htmlFor="flexSwitchCheckDefault">{capitalize(field)}</label>
+                                </div>
+                            );
                         } else {
                             return (
                                 <div key={`${i}$${j}`} className='form-floating mb-3'>
@@ -288,6 +301,7 @@ function Admin() {
                             const [localObject, localFieldsString] = type.slice(1).split('$');
                             const localFields = localFieldsString.split('.')
 
+                            // Retrieve value from API or from local (priority to local)
                             let value;
                             if (editedObject[key]) {
                                 if (editedObject[key][field]) {
@@ -300,7 +314,6 @@ function Admin() {
                                     }
                                 }
                             }
-                            console.log('Update', value);
                             
                             return (
                                 <div key={`${i}$${j}`} className='form-floating mb-3'>
@@ -315,6 +328,33 @@ function Admin() {
                                         ))}
                                     </select>
                                     <label htmlFor={`floatingselect$${key}$${field}`}>{capitalize(field)}</label>
+                                </div>
+                            );
+                            
+                        } else if (type === 'bool') {
+                            // Retrieve value from API or from local (priority to local)
+                            let value = false;
+                            if (editedObject[key]) {
+                                if (editedObject[key][field]) {
+                                    value = editedObject[key][field]
+                                } else {
+                                    const item = (objects[key + 's'] || []).find(el => el.id === editedObject[key].id);
+                                    console.log('Update item', item);
+                                    if (item) {
+                                        value = item[field];
+                                    }
+                                }
+                            }
+                            return (
+                                <div key={`${i}$${j}`} className="form-check form-switch mb-3">
+                                    <input
+                                        onChange={({target}) => handleChangeObject(key, field, target.checked)}
+                                        checked={value}
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        role="switch"
+                                        id="flexSwitchCheckDefault"/>
+                                    <label className="form-check-label" htmlFor="flexSwitchCheckDefault">{capitalize(field)}</label>
                                 </div>
                             );
                         } else {
@@ -381,17 +421,6 @@ function Admin() {
             <h2>You're the boss here!</h2>
             <p className='lead'>Just do anything you want, fire is in your hand.</p>
         </div>
-        <ul className='nav nav-tabs mb-3'>
-            <li className='nav-item'>
-                <button onClick={(e) => (handleTabClick('create'))} type='button' className={tabClassName('create')}>Create</button>
-            </li>
-            <li className='nav-item'>
-                <button onClick={(e) => (handleTabClick('update'))} type='button' className={tabClassName('update')}>Update</button>
-            </li>
-            <li className='nav-item'>
-                <button onClick={(e) => (handleTabClick('delete'))} type='button' className={tabClassName('delete')}>Delete</button>
-            </li>
-        </ul>
         <div className='mb-3'>
             <button
                 className="btn btn-outline-primary mb-3"
@@ -412,11 +441,22 @@ function Admin() {
                         />
                         <label htmlFor='hashhelper'>Raw input</label>
                     </div>
-                    <h6 class="card-subtitle mb-2 text-muted">Raw input hashed</h6>
+                    <h6 className="card-subtitle mb-2 text-muted">Raw input hashed</h6>
                     <p className='card-text'>{createHash('sha256').update(rawHash).digest('hex')}</p>  
                 </div>
             </div>
         </div>
+        <ul className='nav nav-tabs mb-3'>
+            <li className='nav-item'>
+                <button onClick={(e) => (handleTabClick('create'))} type='button' className={tabClassName('create')}>Create</button>
+            </li>
+            <li className='nav-item'>
+                <button onClick={(e) => (handleTabClick('update'))} type='button' className={tabClassName('update')}>Update</button>
+            </li>
+            <li className='nav-item'>
+                <button onClick={(e) => (handleTabClick('delete'))} type='button' className={tabClassName('delete')}>Delete</button>
+            </li>
+        </ul>
         {forms}
         </main>
     </div>

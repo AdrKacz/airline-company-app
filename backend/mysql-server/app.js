@@ -104,7 +104,6 @@ adminRouter.use((req, res, next) => {
 adminRouter.post('/create', async (req, res) => {
     console.log(req.body);
     const object = req.body.object.replace('-', '');
-    console.log(object, allowedName.includes(object))
     if (!allowedName.includes(object)) {
         res.status(400);
         res.json({msg:'This object cannot be created'});
@@ -171,10 +170,25 @@ app.use('/admin', adminRouter);
 // Open API, no need to auth
 
 // Sign in
-app.post('/signin', (req, res) => {
-    // Yep, everyone is admin for now
-    const token = jwt.sign({ role: 'admin' }, 'secret');
-    res.json({status:'connected', token: token, isAdmin: true});
+// TODO 'secret' to be change, and store somewhere else
+app.post('/signin', async (req, res) => {
+    const {email, passwordHash} = req.body;
+
+    const sqlQuery = `
+    SELECT admin
+    FROM user
+    WHERE email = ? AND password_hash = ?
+    `;
+    const result = await query(connection, sqlQuery, [email, passwordHash]);
+    console.log('Result Search User');
+    if (result.length > 0) {
+        const user = result[0];
+        const token = jwt.sign({ role: user.admin ? 'admin' : '' }, 'secret');
+        res.json({status:'connected', token: token, isAdmin: user.admin ? true : false});
+    } else {
+        res.json({status:'not connected'});
+    }
+    
 });
 
 // Get Database
