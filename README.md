@@ -242,7 +242,21 @@ Dec 03 11:57:15 ip-172-31-9-48 systemd[1]: Started nginx - high performance web 
 
 12. Go to [AWS EC2](https://eu-west-3.console.aws.amazon.com/ec2/), select your instance and copy its *Public IP* and in your browser go to *http://<your instance ip>/*. You should see a webpage with **Welcome to nginx!** on it.
 
-13. Return to your terminal, create a `.conf` file for NGINX
+13. Update `airline-company-app/src/constants.js` to update your instance ip
+```bash
+cd
+nano airline-company-app/src/constants.js
+```
+
+```
+// Only choose one
+// DEV
+// exports.apiendpoint = 'http://127.0.0.1:8080';
+// PROD
+exports.apiendpoint = 'http://<your ip address>';
+```
+
+14. Return to your terminal, create a `.conf` file for NGINX
 ```bash
 cd /etc/nginx/conf.d
 sudo mv default.conf default.conf.bak
@@ -256,10 +270,6 @@ server {
         location / {
                 proxy_pass http://localhost:8080;
         }
-
-        location /airline/ {
-                proxy_pass http://localhost:4000;
-        }
 }
 ```
 
@@ -267,7 +277,7 @@ server {
 sudo nginx -s reload
 ```
 
-14. Install **tmux** and run your servers
+15. Install **tmux** and run your servers
 ```bash
 cd
 sudo apt install tmux
@@ -275,30 +285,24 @@ cd airline-company-app/
 npm install serve
 ```
 
-
 Into **tmux**, use `Ctrl-b "` to split window, `Ctrl-b Arrow` to change window, and `Ctrl-b d` to detach your session.
 
 Then, type `tmux attach-session -t 0` to recover your session.
 
-In one window type :
+Open tmux and run the server
 
-```
-cd
-cd airline-company-app/backend/mysql-server/
-npm run prod
-```
-
-Go to *http://<your instance ip>/users*, you should see something like :
-```
-[{"id":1,"email":"admin@admin","password_hash":"8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918","admin":1}]
-```
-
-In the other window type :
 ```
 cd
 cd airline-company-app/
-npm run serve
+tmux
+cd backend/mysql-server
+npm install
+npm run prod
 ```
+
+Hit `Ctrl-b d`.
+
+Your site is up and running at *http://<your instance ip>/airline*.
 
 # Database
 
