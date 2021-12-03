@@ -54,7 +54,7 @@ INSERT INTO user (email, password_hash, admin)
 VALUES (<admin email>, <admin hashed password>, true);
 ```
 
-To find your hashed password, go to [SHA256 Online](https://emn178.github.io/online-tools/sha256.html), enter your password in *Input*, and copy the result from *Output*
+To find your hashed password, go to [SHA256 Online](https://emn178.github.io/online-tools/sha256.html), enter your password in *Input*, and copy the result from *Output*.
 
 10. Update the API endpoint to your local one in `src/constants.js`.
 ```js
@@ -140,21 +140,165 @@ CREATE DATABASE airlineapp;
 exit
 ```
 
-8. Go to your terminal and initiate your database
+6. Clone this Git Repository
+```bash
+git clone https://github.com/AdrKacz/airline-company-app.git
+cd airline-company-app
+```
+
+7. Install NPM
+```
+sudo apt install npm
+```
+
+8. Create `backend/mysql-server/.env`
+```bash
+nano backend/mysql-server/.env
+```
+
+```
+DB_HOST=localhost
+DB_USER=<your root user>
+DB_PASSWORD=<your root password>
+DB_NAME=airlineapp
+HASH_SECRET=<your hash secret, choose anything you want>
+```
+
+*Exemple*
+```
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=password
+DB_NAME=airlineapp
+HASH_SECRET=secret
+```
+
+9. Initiate your database
 ```bash
 cd backend/mysql-server
 npm install
 node commands/initiate.js
 ```
 
-9. Go to **MySQL Workbench** and create your first admin user
+10. Create admin user
+```bash
+sudo mysql -u root -p
+```
+
 ```sql
 USE airlineapp;
 INSERT INTO user (email, password_hash, admin)
 VALUES (<admin email>, <admin hashed password>, true);
 ```
 
-To find your hashed password, go to [SHA256 Online](https://emn178.github.io/online-tools/sha256.html), enter your password in *Input*, and copy the result from *Output*
+*Exemples*
+```sql
+USE airlineapp;
+INSERT INTO user (email, password_hash, admin)
+VALUES ('admin@admin', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', true);
+exit
+```
+
+To find your hashed password, go to [SHA256 Online](https://emn178.github.io/online-tools/sha256.html), enter your password in *Input*, and copy the result from *Output*.
+
+11. Create your NGINX server and run it
+```
+sudo wget http://nginx.org/keys/nginx_signing.key
+sudo apt-key add nginx_signing.key
+cd /etc/apt
+```
+
+Add the following lines to the end of `sources.list`
+```
+deb http://nginx.org/packages/ubuntu focal nginx
+deb-src http://nginx.org/packages/ubuntu focal nginx
+```
+
+```
+sudo apt-get update
+sudo apt-get install nginx
+sudo systemctl start nginx.service
+sudo systemctl status nginx.service
+```
+
+You should see something like:
+```bash
+● nginx.service - nginx - high performance web server
+     Loaded: loaded (/lib/systemd/system/nginx.service; enabled; vendor preset: enabled)
+     Active: active (running) since Fri 2021-12-03 11:57:15 UTC; 5s ago
+       Docs: https://nginx.org/en/docs/
+    Process: 13785 ExecStart=/usr/sbin/nginx -c /etc/nginx/nginx.conf (code=exited, status=0/SUCCESS)
+   Main PID: 13786 (nginx)
+      Tasks: 2 (limit: 1154)
+     Memory: 1.7M
+     CGroup: /system.slice/nginx.service
+             ├─13786 nginx: master process /usr/sbin/nginx -c /etc/nginx/nginx.conf
+             └─13787 nginx: worker process
+
+Dec 03 11:57:15 ip-172-31-9-48 systemd[1]: Starting nginx - high performance web server...
+Dec 03 11:57:15 ip-172-31-9-48 systemd[1]: nginx.service: Can't open PID file /run/nginx.pid (yet?) after start: Operation not pe>
+Dec 03 11:57:15 ip-172-31-9-48 systemd[1]: Started nginx - high performance web server.
+```
+
+12. Go to [AWS EC2](https://eu-west-3.console.aws.amazon.com/ec2/), select your instance and copy its *Public IP* and in your browser go to *http://<your instance ip>/*. You should see a webpage with **Welcome to nginx!** on it.
+
+13. Return to your terminal, create a `.conf` file for NGINX
+```bash
+cd /etc/nginx/conf.d
+sudo mv default.conf default.conf.bak
+sudo nano airline.conf
+```
+
+And type the following
+
+```
+server {
+        location / {
+                proxy_pass http://localhost:8080;
+        }
+
+        location /airline/ {
+                proxy_pass http://localhost:4000;
+        }
+}
+```
+
+```bash
+sudo nginx -s reload
+```
+
+14. Install **tmux** and run your servers
+```bash
+cd
+sudo apt install tmux
+cd airline-company-app/
+npm install serve
+```
+
+
+Into **tmux**, use `Ctrl-b "` to split window, `Ctrl-b Arrow` to change window, and `Ctrl-b d` to detach your session.
+
+Then, type `tmux attach-session -t 0` to recover your session.
+
+In one window type :
+
+```
+cd
+cd airline-company-app/backend/mysql-server/
+npm run prod
+```
+
+Go to *http://<your instance ip>/users*, you should see something like :
+```
+[{"id":1,"email":"admin@admin","password_hash":"8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918","admin":1}]
+```
+
+In the other window type :
+```
+cd
+cd airline-company-app/
+npm run serve
+```
 
 # Database
 

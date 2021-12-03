@@ -319,6 +319,15 @@ app.get('/consumers', async (req, res) => {
 });
 
 // ===== ===== ===== ===== =====
+// Serve React App
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'build')));
+
+app.get('/airline', function (req, res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
+// ===== ===== ===== ===== =====
 // Start API
 app.listen(port, () => {
     console.log(`App listening at http://localhost:${port}`);
