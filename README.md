@@ -240,7 +240,7 @@ Dec 03 11:57:15 ip-172-31-9-48 systemd[1]: nginx.service: Can't open PID file /r
 Dec 03 11:57:15 ip-172-31-9-48 systemd[1]: Started nginx - high performance web server.
 ```
 
-12. Go to [AWS EC2](https://eu-west-3.console.aws.amazon.com/ec2/), select your instance and copy its *Public IP* and in your browser go to *http://<your instance ip>/*. You should see a webpage with **Welcome to nginx!** on it.
+12. Go to [AWS EC2](https://eu-west-3.console.aws.amazon.com/ec2/), select your instance and copy its *Public IP* and in your browser go to *`http://<your instance ip>/airline`*. You should see a webpage with **Welcome to nginx!** on it.
 
 13. Update `airline-company-app/src/constants.js` to update your instance ip
 ```bash
@@ -302,7 +302,7 @@ npm run prod
 
 Hit `Ctrl-b d`.
 
-Your site is up and running at *http://<your instance ip>/airline*.
+Your site is up and running at *`http://<your instance ip>/airline`*.
 
 # Database
 

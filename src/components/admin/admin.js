@@ -4,110 +4,19 @@ import { createHash } from 'crypto';
 
 import { apiendpoint } from '../../constants';
 
+import databaseSchema from './database-schema.js';
+
+import Alert from './alert.js';
+import AdminCreateForm from './admin-create-form';
+import AdminUpdateForm from './admin-update-form';
+import AdminDeleteForm from './admin-delete-form';
+
 import useObjects from '../../hooks/useObjects.js';
 import useUser from '../../hooks/useUser.js';
 
-const capitalize = (string) => (
-    string.split('-').map((word, i) => (word[0].toUpperCase() + word.slice(1))).join(' ')
-);
-
-const databaseSchema = {
-    'user': {
-        'fields': [
-            ['email', 'text'],
-            ['password-hash', 'text'],
-            ['admin', 'bool']
-        ]
-    },
-    'airport': {
-        'fields': [
-            ['name', 'text'],
-            ['code', 'text'],
-        ]
-    },
-    'airplane': {
-        'fields': [
-            ['number', 'number'],
-            ['type', 'text'],
-        ]
-    },
-    'employee': {
-        'fields': [
-            ['security-number', 'number'],
-            ['surname', 'text'],
-            ['name', 'text'],
-            ['address', 'text'],
-            ['salary', 'number'],
-            ['user-id', '$user$email'],
-        ]
-    },
-    'consumer': {
-        'fields': [
-            ['number', 'number'],
-            ['surname', 'text'],
-            ['name', 'text'],
-            ['user-id', '$user$email'],
-        ]
-    },
-
-    'connection': {
-        'fields': [
-            ['departure-airport-id', '$airport$name'],
-            ['arrival-airport-id', '$airport$name'],
-        ]
-    },
-    'pilot': {
-        'fields': [
-            ['employee-id', '$employee$name.surname'],
-            ['license-number', 'text'],
-        ]
-    },
-    'crew-member': {
-        'fields': [
-            ['employee-id', '$employee$name.surname'],
-            ['role', 'text'],
-        ]
-    },
-
-    'flight': {
-        'fields': [
-            ['from', 'date'],
-            ['to', 'date'],
-            ['number', 'number'],
-            ['connection-id', '$connection$id'],
-            ['airplane-id', '$airplane$number'],
-            ['departure-day', 'text'],
-            ['arrival-day', 'text'],
-            ['departure-time', 'time'],
-            ['arrival-time', 'time'],
-        ]
-    },
-    
-    'departure': {
-        'fields': [
-            ['flight-id', '$flight$from.to'],
-            ['date', 'date'],
-            ['pilot-id', '$pilot$name.surname'],
-            ['optional-pilot-id', '$pilot$name.surname'],
-            ['first-crew-member-id', '$crew-member$name.surname'],
-            ['second-crew-member-id', '$crew-member$name.surname'],
-            ['number-of-empty-seat', 'number'],
-            ['number-of-reserved-seat', 'number'],
-        ]
-    },
-
-    'ticket': {
-        'fields': [
-            ['number', 'number'],
-            ['date-time-of-issue', 'datetime-local'],
-            ['price', 'number'],
-            ['departure-id', '$departure$date'],
-            ['consumer-id', '$consumer$date'],
-        ]
-    },
-}
-
 function Admin() {
+    const [alerts, setAlerts] = useState({});
+    const [alertCounter, setAlertCounter] = useState(0);
     const [state, setState] = useState('create');
     const [showCollapse, setShowCollapse] = useState(false);
     const [rawHash, setRawHash] = useState('');
@@ -165,6 +74,44 @@ function Admin() {
         }
     }
 
+    function resetObject(object) {
+        setEditedObject({
+            ...editedObject,
+            [object]: undefined,
+        });
+    }
+
+    function addAlert(responseJSON, object) {
+        if (responseJSON.err) {
+            setAlerts({
+                ...alerts,
+                [alertCounter]: {
+                    id: alertCounter,
+                    status: 'fail',
+                    message: responseJSON.msg,
+                }
+            });
+        } else {
+            setAlerts({
+                ...alerts,
+                [alertCounter]: {
+                    id: alertCounter,
+                    status: 'success',
+                    message: `[${object}] ${responseJSON.msg}`,
+                }
+            });
+        }
+        setAlertCounter(alertCounter + 1);
+        console.log(responseJSON);
+    }
+
+    function removeAlert(alertId) {
+        delete alerts[alertId];
+        setAlerts({
+            ...alerts,
+        });
+    }
+
     async function handleSubmitCreateObject(object) {
         // TODO: Display message when create did not succeed (never)
         // TODO: Do not submit if one field is undefined 
@@ -180,7 +127,8 @@ function Admin() {
             }),
         }).then(response => response.json());
         await reload();
-        console.log(responseJSON);
+        addAlert(responseJSON, object);
+        resetObject(object);
     }
 
     async function handleSubmitUpdateObject(object) {
@@ -198,8 +146,9 @@ function Admin() {
                 data: editedObject[object],
             }),
         }).then(response => response.json());
-        await reload()
-        console.log(responseJSON);
+        await reload();
+        addAlert(responseJSON, object);
+        resetObject(object);
     }
 
     async function handleSubmitDeleteObject(object) {
@@ -216,199 +165,35 @@ function Admin() {
             }),
         }).then(response => response.json());
         await reload();
-        console.log(responseJSON);
+        addAlert(responseJSON, object);
+        resetObject(object);
     }
 
     let forms;
     if (state === 'create') {
-        forms = Object.entries(databaseSchema).map(([key, value], i) => (
-            <form key={i} className='mb-5' onSubmit={(e) => {e.preventDefault(); handleSubmitCreateObject(key)}}>
-                <h4 className='mb-3'>{capitalize(key)}</h4>
-                {
-                    value.fields.map(([field, type], j) => {
-                        if (type[0] === '$') {
-                            const [localObject, localFieldsString] = type.slice(1).split('$');
-                            const localFields = localFieldsString.split('.')
-                            return (
-                                <div key={`${i}$${j}`} className='form-floating mb-3'>
-                                    <select
-                                        value={editedObject[key] ? editedObject[key][field] : undefined}
-                                        onChange={({target}) => (handleChangeObject(key, field, target.value))}
-                                        className='form-select'
-                                        id={`floatingselect$${key}$${field}`}
-                                    >
-                                        <option>...</option>
-                                        {(objects[localObject + 's'] || []).map((o, i) => (
-                                            <option key={`floatingselect$${key}$${field}$${i}`} value={o.id}>{localFields.map(f => o[f]).join(' ')}</option>
-                                        ))}
-                                    </select>
-                                    <label htmlFor={`floatingselect$${key}$${field}`}>{capitalize(field)}</label>
-                                </div>
-                            );
-                        } else if (type === 'bool') {
-                            return (
-                                <div key={`${i}$${j}`} className="form-check form-switch mb-3">
-                                    <input
-                                        onChange={({target}) => handleChangeObject(key, field, target.checked)}
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        role="switch"
-                                        id="flexSwitchCheckDefault"/>
-                                    <label className="form-check-label" htmlFor="flexSwitchCheckDefault">{capitalize(field)}</label>
-                                </div>
-                            );
-                        } else {
-                            return (
-                                <div key={`${i}$${j}`} className='form-floating mb-3'>
-                                    <input
-                                        onChange={({target}) => (handleChangeObject(key, field, target.value))}
-                                        type={type}
-                                        className='form-control'
-                                        id={`floating$${key}$${field}`}
-                                        placeholder={field}
-                                        value={editedObject[key] && editedObject[key][field] ? editedObject[key][field] : ''}
-                                        required/>
-                                    <label htmlFor={`floating$${key}$${field}`}>{capitalize(field)}</label>
-                                </div>
-                            );
-                        }
-                    })
-                }
-                <button className="w-100 btn btn-lg btn-primary" type="submit">Create</button>
-            </form>
-            ));
+        forms = <AdminCreateForm
+            databaseSchema={databaseSchema}
+            handleSubmitCreateObject={handleSubmitCreateObject}
+            handleChangeObject={handleChangeObject}
+            editedObject={editedObject}
+            objects={objects}
+        />
     } else if (state === 'update') {
-        forms = Object.entries(databaseSchema).map(([key, value], i) => (
-            <form key={i} className='mb-5' onSubmit={(e) => {e.preventDefault(); handleSubmitUpdateObject(key)}}>
-                <h4 className='mb-3'>{capitalize(key)}</h4>
-                <div key={`selectmainupdate$${i}`} className='form-floating mb-3'>
-                    <select
-                            value={editedObject[key] ? editedObject[key].id : undefined}
-                            onChange={({target}) => (handleChangeObject(key, 'id', target.value))}
-                            className='form-select'
-                            id={`floatingselectmainupdate${key}`}
-                        >
-                            <option>...</option>
-                            {(objects[key + 's'] || []).map((o, k) => (
-                                <option key={`floatingselectmainupdate$${key}$${k}`} value={o.id}>{o.id}</option>
-                            ))}
-                    </select>
-                    <label htmlFor={`floatingselectmainupdate$${key}`}>{capitalize(key)}</label>
-                </div>
-                {editedObject[key] && editedObject[key].id &&
-                    value.fields.map(([field, type], j) => {
-                        if (type[0] === '$') {
-                            const [localObject, localFieldsString] = type.slice(1).split('$');
-                            const localFields = localFieldsString.split('.')
-
-                            // Retrieve value from API or from local (priority to local)
-                            let value;
-                            if (editedObject[key]) {
-                                if (editedObject[key][field]) {
-                                    value = editedObject[key][field]
-                                } else {
-                                    const item = (objects[key + 's'] || []).find(el => el.id === editedObject[key].id);
-                                    console.log('Update item', item);
-                                    if (item) {
-                                        value = item[field];
-                                    }
-                                }
-                            }
-                            
-                            return (
-                                <div key={`${i}$${j}`} className='form-floating mb-3'>
-                                    <select
-                                        value={value}
-                                        onChange={({target}) => (handleChangeObject(key, field, target.value))}
-                                        className='form-select'
-                                        id={`floatingselect$${key}$${field}`}
-                                    >
-                                        {(objects[localObject + 's'] || []).map((o, i) => (
-                                            <option key={`floatingselect$${key}$${field}$${i}`} value={o.id}>{localFields.map(f => o[f]).join(' ')}</option>
-                                        ))}
-                                    </select>
-                                    <label htmlFor={`floatingselect$${key}$${field}`}>{capitalize(field)}</label>
-                                </div>
-                            );
-                            
-                        } else if (type === 'bool') {
-                            // Retrieve value from API or from local (priority to local)
-                            let value = false;
-                            if (editedObject[key]) {
-                                if (editedObject[key][field]) {
-                                    value = editedObject[key][field]
-                                } else {
-                                    const item = (objects[key + 's'] || []).find(el => el.id === editedObject[key].id);
-                                    console.log('Update item', item);
-                                    if (item) {
-                                        value = item[field];
-                                    }
-                                }
-                            }
-                            return (
-                                <div key={`${i}$${j}`} className="form-check form-switch mb-3">
-                                    <input
-                                        onChange={({target}) => handleChangeObject(key, field, target.checked)}
-                                        checked={value}
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        role="switch"
-                                        id="flexSwitchCheckDefault"/>
-                                    <label className="form-check-label" htmlFor="flexSwitchCheckDefault">{capitalize(field)}</label>
-                                </div>
-                            );
-                        } else {
-                            let value = '';
-                            if (editedObject[key]) {
-                                if (editedObject[key][field]) {
-                                    value = editedObject[key][field]
-                                } else {
-                                    const item = (objects[key + 's'] || []).find(el => el.id === editedObject[key].id);
-                                    if (item) {
-                                        value = item[field];
-                                    }
-                                }
-                            }
-                            return (
-                                <div key={`${i}$${j}`} className='form-floating mb-3'>
-                                    <input
-                                        onChange={({target}) => (handleChangeObject(key, field, target.value))}
-                                        type={type}
-                                        className='form-control'
-                                        id={`floating$${key}$${field}`}
-                                        placeholder={field}
-                                        value={value}
-                                        required/>
-                                    <label htmlFor={`floating$${key}$${field}`}>{capitalize(field)}</label>
-                                </div>
-                            );
-                        }
-                    })
-                }
-                <button className="w-100 btn btn-lg btn-primary" type="submit">Update</button>
-            </form>
-            ));
+        forms = <AdminUpdateForm
+            databaseSchema={databaseSchema}
+            handleSubmitUpdateObject={handleSubmitUpdateObject}
+            handleChangeObject={handleChangeObject}
+            editedObject={editedObject}
+            objects={objects}
+        />
     } else if (state === 'delete') {
-        forms = Object.entries(databaseSchema).map(([key, value], i) => (
-            <form key={i} className='mb-5' onSubmit={(e) => {e.preventDefault(); handleSubmitDeleteObject(key)}}>
-                <h4 className='mb-3'>{capitalize(key)}</h4>
-                <div key={`selectmaindelete$${i}`} className='form-floating mb-3'>
-                    <select
-                        value={editedObject[key] ? editedObject[key].id : undefined}
-                        onChange={({target}) => (handleChangeObject(key, 'id', target.value))}
-                        className='form-select'
-                        id={`floatingselectmaindelete$${key}`}
-                    >
-                        <option>...</option>
-                        {(objects[key + 's'] || []).map((o, k) => (
-                            <option key={`floatingselectmaindelete$${key}$${k}`} value={o.id}>{o.id}</option>
-                        ))}
-                    </select>
-                    <label htmlFor={`floatingselectmain$${key}`}>{capitalize(key)}</label>
-                </div>
-                <button className="w-100 btn btn-lg btn-primary" type="submit">Delete</button>
-            </form>
-            ));
+        forms = <AdminDeleteForm
+            databaseSchema={databaseSchema}
+            handleSubmitDeleteObject={handleSubmitDeleteObject}
+            handleChangeObject={handleChangeObject}
+            editedObject={editedObject}
+            objects={objects}
+        />
     }
 
 
@@ -417,6 +202,11 @@ function Admin() {
     return (
     <div className='container pb-5'>
         <main>
+        <div className='fixed-top m-3'>
+            {Object.values(alerts).map((alert) => (
+                <Alert key={alert.id} status={alert.status} message={alert.message} handleClick={() => removeAlert(alert.id)}/>
+            ))}
+        </div>
         <div className='py-5 text-center'>
             <h2>You're the boss here!</h2>
             <p className='lead'>Just do anything you want, fire is in your hand.</p>

@@ -10,6 +10,7 @@ const bodyParser = require('body-parser');
 // Connection to SQL Database
 const mysql = require('mysql');
 const {connect, end,  query} = require('./helpers/mysql-helpers');
+const { env } = require('process');
 const connection = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -115,9 +116,15 @@ adminRouter.post('/create', async (req, res) => {
     // Create object
     const data = req.body.data;
     delete data.id;
-    await insertObject(object, data).catch((err) => {console.error(err); res.status(400)});
-    res.json({msg:'Create'});
-    
+    let localErr;
+    await insertObject(object, data).catch((err) => {console.error(err); localErr = err;});
+    // TODO : You should note send the raw SQL Error Message (easier to debug but not secure)
+    if (localErr) {
+        res.status(400)
+        res.json({err: true, msg:localErr.sqlMessage});
+    } else {
+        res.json({err: false, msg:'Create'});
+    }
 });
 adminRouter.post('/update', async (req, res) => {
     console.log(req.body);
@@ -140,8 +147,15 @@ adminRouter.post('/update', async (req, res) => {
     // Update object
     const data = req.body.data;
     delete data.id;
-    await updateObject(object, data, objectId).catch((err) => {console.error(err); res.status(400)});
-    res.json({msg:'Update'});
+    let localErr;
+    await updateObject(object, data, objectId).catch((err) => {console.error(err); localErr = err;});
+    // TODO : You should note send the raw SQL Error Message (easier to debug but not secure)
+    if (localErr) {
+        res.status(400)
+        res.json({err: true, msg:localErr.sqlMessage});
+    } else {
+        res.json({err: false, msg:'Update'});
+    }
 });
 adminRouter.post('/delete', async (req, res) => {
     console.log(req.body);
@@ -162,8 +176,15 @@ adminRouter.post('/delete', async (req, res) => {
     }
 
     // Delete object
-    await deleteObject(object, objectId).catch((err) => {console.error(err); res.status(400)});
-    res.json({msg:'Delete'});
+    let localErr;
+    await deleteObject(object, objectId).catch((err) => {console.error(err); localErr = err;});
+    // TODO : You should note send the raw SQL Error Message (easier to debug but not secure)
+    if (localErr) {
+        res.status(400)
+        res.json({err: true, msg:localErr.sqlMessage});
+    } else {
+        res.json({err: false, msg:'Delete'});
+    }
 });
 
 app.use('/admin', adminRouter);
@@ -319,14 +340,15 @@ app.get('/consumers', async (req, res) => {
 });
 
 // ===== ===== ===== ===== =====
-// Serve React App
-const path = require('path');
-app.use(express.static(path.join(__dirname, 'build')));
+// Serve React App (only in PROD, if DEV you should have React server running)
+if (process.env.MODE === 'PROD') {
+    const path = require('path');
+    app.use(express.static(path.join(__dirname, 'build')));
 
-app.get('/airline', function (req, res) {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
-
+    app.get('/', function (req, res) {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+    });
+}
 // ===== ===== ===== ===== =====
 // Start API
 app.listen(port, () => {

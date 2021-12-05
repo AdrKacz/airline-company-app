@@ -12,11 +12,10 @@
     "react-day-picker": "^7.4.10",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
-    "serve": "^13.0.2",
     "web-vitals": "^1.0.1"
   },
   "scripts": {
-    "serve": "serve -s build -l 4000",
+    "build-server": "yarn build && rm -rf backend/mysql-server/build/* && mv build backend/mysql-server",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d build",
     "start": "react-scripts start",
