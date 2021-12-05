@@ -196,6 +196,7 @@ app.use('/admin', adminRouter);
 app.post('/signin', async (req, res) => {
     const {email, passwordHash} = req.body;
 
+    // Check if the user exist
     const sqlQuery = `
     SELECT admin
     FROM user
@@ -203,11 +204,13 @@ app.post('/signin', async (req, res) => {
     `;
     const result = await query(connection, sqlQuery, [email, passwordHash]);
     console.log('Result Search User');
+
+    // If it does, create a token
     if (result.length > 0) {
         const user = result[0];
         const token = jwt.sign({ role: user.admin ? 'admin' : '' }, process.env.HASH_SECRET);
         res.json({status:'connected', token: token, isAdmin: user.admin ? true : false});
-    } else {
+    } else { // If not, inform the client
         res.json({status:'not connected'});
     }
     

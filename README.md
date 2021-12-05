@@ -4,6 +4,274 @@ Work done for Centrale Lyon, MOD 4.6 Database system
 
 Airline Company Website is up and running at *[https://adrkacz.github.io/airline-company-app/](https://adrkacz.github.io/airline-company-app/)*
 
+# Architecture
+
+## Frontend `src/`
+
+### Single-page application
+
+The project is build with the [React](https://reactjs.org) library.
+
+It is a simple-page application with state variable. That means that, once your on the page, you never reload, or load, another page on the same domain, everything is self contained.
+
+When you click a link (*or, more precisely, what looks like a link*), you change the state of the app (hold in the `appState` variable).
+
+`src/App.js`
+```js
+// ...
+<>
+<Header
+isConnected={user.isConnected}
+isAdmin={user.isAdmin}
+homeState={() => changeAppState('home')}
+signInState={() => changeAppState('signin')}
+profileState={() => changeAppState('profile')}
+adminState={() => changeAppState('admin')}
+/>
+{appState === 'home' && <Home flightsState={() => changeAppState('flights')}/>}
+{appState === 'flights' && <Flights checkoutState={() => changeAppState('checkout')}/>}
+{appState === 'checkout' && <Checkout completionState={() => changeAppState('completion')}/>}
+{appState === 'completion' && <Completion homeState={() => changeAppState('home')}/>}
+{appState === 'signin' && <SignIn previousState={() => changeAppState(previousAppState)}/>}
+{appState === 'profile' && <Profile previousState={() => changeAppState(previousAppState)} checkoutState={() => changeAppState('checkout')}/>}
+{appState === 'admin' && <Admin/>}
+<Footer />
+</>
+// ...
+```
+
+### Connection with the database
+
+The application use an external **API** to retrieve and edit information in the database.
+
+The main advandage is that this **API** can be distributed on any platform, not related to the platform that distrubutes the application.
+
+> Here, for cost efficiency reason, both the **API** and the application are served by the same server, but this hasn't to be the case. Indeed, for a more secure and reliable application, it would have been more appropriate to distribute the application with **Serverless** (*AWS Lambda*) platform and to distribute the **API** with either a instance connected to a SQL Database or another **Serverless** environement connected to a SQL environement (*AWS RDS*).
+
+One of the exemple of the numerous call made to the **API** is the call made to retrieve the available flights. This call is made in `src/hoooks/useFlights.js`.
+
+```js
+// ...
+const url = (fromAirport, toAirport, date) => (
+  `${apiendpoint}/flights/airports/${fromAirport}-${toAirport}/date/${date.valueOf()}`
+);
+
+const fetchAPI = async(fromAirport, toAirport, date) => {
+  const response = await fetch(url(fromAirport, toAirport, date));
+  return await response.json();
+};
+// ...
+function loadFlights() {
+    // Fetch API
+    let isMounted = true;
+    fetchAPI(fromAirport, toAirport, date).then(responseJSON => {
+      if (!isMounted) {
+        return;
+      }
+      const data = {}
+      responseJSON.forEach(flight => {
+        data[flight.id] = {
+          id: flight.id,
+          from: flight.from,
+          to: flight.to,
+          departure: new Date(flight.departure),
+          arrival: new Date(flight.arrival),
+          price: flight.price,
+        };
+      });
+      setFlights(data);
+    });
+
+    return () => {
+      isMounted = false;
+    }; 
+  }
+// ...
+```
+
+Here, in development, **API** is reached on something like *`http://127.0.0.1/flights/airports/10-13`* with `10` and `13` the `id` of the airports chosen by the user.
+
+Have a look at `src/hooks/useAirports.js` to see how the *airports* are retrieved.
+
+### Authentification
+
+Authentification is handle in `src/hooks/useUser.js` `signIn` function.
+
+```js
+  async function signIn(email, password) {
+    // Hash password
+    const passwordHash = createHash('sha256').update(password).digest('hex');
+    // Ask for token
+    const responseJSON = await fetch(apiendpoint + '/signin', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+          email: email,
+          passwordHash: passwordHash,
+      }),
+    }).then(response => response.json());
+
+    if (responseJSON && responseJSON.status === 'connected') {
+      user.isConnected = true;
+      user.token = responseJSON.token;
+      user.isAdmin = responseJSON.isAdmin;
+      user.email = email;
+      user.password = password;
+      setIsConnected(user.isConnected);
+    } else {
+      signOut()
+    }
+  }
+```
+
+Frontend request signin to the backend by sending the email and the hash of the password to the dedicated endpoint.
+
+> The password is never sent over the network, this would be a security leak. A even more secure approach would have implied salt and pepper before hashing.
+
+If backend recognizes the user, it send a `status` flag to `connected`. So, frontend can hold in a local variable the current status of the user, and most importantly, its **[JWT Token](https://jwt.io)** (`user.token`).
+
+**JWT Token** is a key sent by the server to authenticate the user in subsequent request. Frontend will send this token along side other information to be able to perform operations related to a given account, or operations that needs special rights (*admin* status needed to update the database).
+
+### Admin panel
+
+The admin panel let user authenticated as *admin* to create, update, and delete objects in the database. This implies that the user has the appropriate **JWT Token** to perform the action.
+
+The code source for the admin panel is located at `src/components/admin/`.
+
+There are three forms, one to create objects (`AdminCreateForm` at `src/components/admin/admin-create-form.js`), on to update existing objects (`AdminUpdateForm` at `src/components/admin/admin-update-form.js`), and one to delete objects `AdminDeleteForm` at `src/components/admin/admin-delete-form.js`.
+
+These forms are created thanks to a **JSON** template `databaseSchema` at `src/components/admin/database-schema.js`.
+
+```json
+{
+        ...,
+        'name-of-an-object': {
+                'fields': [
+                        ...,
+                        ['name-of-a-field', 'type-of-this-field]
+                        ['name-of-a-external key field', '$name-of-this-external-key-object$field-to-display-a.field-to-display-b.etc.]
+                        ...,
+                ]
+        }
+        ...,
+}
+```
+
+This allow you to update the **UI**, and the database schema, withtout having to change the code.
+
+## Backend `backend/mysql-server/`
+
+Backend is a simple **[Express](https://expressjs.com)** server.
+
+In development, the server is used purely as an **API**. In production, the root endpoint is reserved to serve the application, the rest remains the **API**.
+
+**[MySQL Community Server](https://dev.mysql.com/downloads/mysql/)** must be up and running for the **API** to work.
+
+Most of the code needed to run the server is at `backend/mysql-server/app.js`.
+
+The folder `backend/mysql-server/commands` contains useful commands to create and delete the database. It should be use only at the beginning and at the end of the life of the project.
+
+### Connect to the database
+
+The package **[mysql](https://www.npmjs.com/package/mysql)** is used to connect to the database running instance.
+
+```js
+// Connection to SQL Database
+const mysql = require('mysql');
+const {connect, end,  query} = require('./helpers/mysql-helpers');
+const { env } = require('process');
+const connection = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+});
+connect(connection);
+```
+
+Three helpers are defined in `backend/mysql-server/helpers/mysql-helpers.js` to transform `callback` functions into `async` functions.
+
+> These are useful to avoid sending result before getting result in asynchronous operations. Indeed, `express` `use` method need a return statement that cannot be completed with a `callback` (or with intrigated workaround).
+
+The information to connect to the database is stored in `backend/mysql-server/.env`. This file is never sent to the GitHub Repository and need to be created when cloning the repository (it handles sensitive information).
+
+### Get information from the database
+
+All the endpoint paths that only involve to retrieve information used the **GET** method.
+
+For exemple, the endpoint to retrieve the flights corresponding to a given date and a given correspondance is `/flights/airports/:from-:to/date/:date` (word starting with `:` are parameters, see [Express documentation](https://expressjs.com/en/guide/routing.html)).
+
+```js
+app.get('/flights/airports/:from-:to/date/:date', async (req, res) => {
+    // ...
+    // Read parameters and check that everything is correct
+    // ...
+
+    // Request to database 
+    console.log(flight.from, flight.to)
+    const date = new Date(parseInt(dateInt));
+    const sqlQuery = `
+    SELECT departure.date, flight.departure_time, flight.arrival_time, a_departure.name as name_departure, a_arrival.name as name_arrival
+    FROM departure
+    LEFT JOIN flight ON departure.flight_id = flight.id
+    LEFT JOIN connection ON flight.connection_id = connection.id
+    LEFT JOIN airport a_departure ON connection.departure_airport_id = a_departure.id
+    LEFT JOIN airport a_arrival ON connection.arrival_airport_id = a_arrival.id
+    WHERE DATE(departure.date) = ? AND a_departure.id = ? AND a_arrival.id = ?
+    ORDER BY departure.date ASC
+    `;
+    const result = await query(connection, sqlQuery, [date.toJSON().slice(0, 10), flight.from, flight.to])
+    console.log('Result Search Flights');
+    console.log(result);
+
+    // Map the result to correct type
+    // ...
+
+    // DEV, for test only
+    // Add a fake response to always have something to click on
+    // ...
+    res.status(200); 
+    res.json(data);
+    return;
+});
+```
+
+### Authentification
+
+Each endpoint that modified the database is a **POST** method endpoint. Before processing the request, the server check the **[JWT Token](https://jwt.io)** send in the request. If the token doesn't have the `admin` flag, it rejects the request.
+
+The **JWT Token** is generated by the server in the `/signin` endpoint, thanks to the **[jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)** package.
+
+```js
+app.post('/signin', async (req, res) => {
+        const {email, passwordHash} = req.body;
+
+        // Check if the user exist
+        const sqlQuery = `
+        SELECT admin
+        FROM user
+        WHERE email = ? AND password_hash = ?
+        `;
+        const result = await query(connection, sqlQuery, [email, passwordHash]);
+        console.log('Result Search User');
+
+        // If it does, create a token
+        if (result.length > 0) {
+        const user = result[0];
+        const token = jwt.sign({ role: user.admin ? 'admin' : '' }, process.env.HASH_SECRET);
+        res.json({status:'connected', token: token, isAdmin: user.admin ? true : false});
+        } else { // If not, inform the client
+        res.json({status:'not connected'});
+        }
+
+});
+```
+
+`process.env.HASH_SECRET` is stored in `backend/mysql-server/.env`. This file is never sent to GitHub Repository because it handles sensitive data. Without this secret, the client cannot modify its token.
+By default, `jsonwebtoken` use `SHA256` encryption which is secure enough for our purpose (you won't succeed to modify your token with bruteforce only).  
+
 # Install development server
 
 ## Get the GitHub Repository
