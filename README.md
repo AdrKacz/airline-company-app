@@ -6,11 +6,15 @@ Airline Company Website is up and running at *[https://adrkacz.github.io/airline
 
 # Install development server
 
+## Get the GitHub Repository
+
 1. Clone the Github repository and install dependencies
 ```bash
 git clone https://github.com/AdrKacz/airline-company-app.git
 cd airline-company-app
 ```
+
+## Install your MySQL Database
 
 2. Install **[MySQL](https://dev.mysql.com/downloads/mysql/)**
 
@@ -33,6 +37,7 @@ DB_USER=<your root user>
 DB_PASSWORD=<your root password>
 DB_NAME=airlineapp
 HASH_SECRET=<your hash secret, choose anything you want>
+MODE=DEV
 ```
 
 7. Go to **MySQL Workbench** and create your database
@@ -55,6 +60,8 @@ VALUES (<admin email>, <admin hashed password>, true);
 ```
 
 To find your hashed password, go to [SHA256 Online](https://emn178.github.io/online-tools/sha256.html), enter your password in *Input*, and copy the result from *Output*.
+
+## Run Front and Back Servers
 
 10. Update the API endpoint to your local one in `src/constants.js`.
 ```js
@@ -85,6 +92,8 @@ npm start
 
 # Install production server (using AWS EC2)
 
+## Create your Cloud Instance
+
 1. Go to [AWS EC2](https://eu-west-3.console.aws.amazon.com/ec2/) and create a new instance.
 
  - Select *Ubuntu*, last version
@@ -92,6 +101,8 @@ npm start
  - In the *firewall section*, update **SSH** to allow only *My IP*, and add **HTTP** and allow *anywhere*
  - Review and launch
  - Connect to your instance using the *Connect* button and its instructions
+
+## Install your MySQL Database
 
 2. Install **MySQL** on your instance
 ```bash
@@ -107,7 +118,7 @@ You should see something like the following :
 ```bash
 ● mysql.service - MySQL Community Server
      Loaded: loaded (/lib/systemd/system/mysql.service; enabled; vendor preset: enabled)
-     Active: active (running) since Fri 2021-12-03 08:20:52 UTC; 1min 38s ago
+     Active: active (running) since ... ....-..-.. ..:..:.. UTC; 1min 38s ago
    Main PID: 2390 (mysqld)
      Status: "Server is operational"
       Tasks: 37 (limit: 1154)
@@ -115,8 +126,8 @@ You should see something like the following :
      CGroup: /system.slice/mysql.service
              └─2390 /usr/sbin/mysqld
 
-Dec 03 08:20:51 ip-172-31-21-172 systemd[1]: Starting MySQL Community Server...
-Dec 03 08:20:52 ip-172-31-21-172 systemd[1]: Started MySQL Community Server.
+... .. ..:..:.. ip-...-...-...-... systemd[1]: Starting MySQL Community Server...
+... .. ..:..:.. ip-...-...-...-... systemd[1]: Started MySQL Community Server.
 ```
 
 4. Log in your database and alter the *root* user, choose your own password and remember it
@@ -162,6 +173,7 @@ DB_USER=<your root user>
 DB_PASSWORD=<your root password>
 DB_NAME=airlineapp
 HASH_SECRET=<your hash secret, choose anything you want>
+MODE=PROD
 ```
 
 *Exemple*
@@ -201,6 +213,8 @@ exit
 
 To find your hashed password, go to [SHA256 Online](https://emn178.github.io/online-tools/sha256.html), enter your password in *Input*, and copy the result from *Output*.
 
+## Open your Instance to the World
+
 11. Create your NGINX server and run it
 ```
 sudo wget http://nginx.org/keys/nginx_signing.key
@@ -222,10 +236,10 @@ sudo systemctl status nginx.service
 ```
 
 You should see something like:
-```bash
+```
 ● nginx.service - nginx - high performance web server
      Loaded: loaded (/lib/systemd/system/nginx.service; enabled; vendor preset: enabled)
-     Active: active (running) since Fri 2021-12-03 11:57:15 UTC; 5s ago
+     Active: active (running) since ... ....-..-.. ..:..:.. UTC; 5s ago
        Docs: https://nginx.org/en/docs/
     Process: 13785 ExecStart=/usr/sbin/nginx -c /etc/nginx/nginx.conf (code=exited, status=0/SUCCESS)
    Main PID: 13786 (nginx)
@@ -235,17 +249,15 @@ You should see something like:
              ├─13786 nginx: master process /usr/sbin/nginx -c /etc/nginx/nginx.conf
              └─13787 nginx: worker process
 
-Dec 03 11:57:15 ip-172-31-9-48 systemd[1]: Starting nginx - high performance web server...
-Dec 03 11:57:15 ip-172-31-9-48 systemd[1]: nginx.service: Can't open PID file /run/nginx.pid (yet?) after start: Operation not pe>
-Dec 03 11:57:15 ip-172-31-9-48 systemd[1]: Started nginx - high performance web server.
+... .. ..:..:.. ip-...-...-...-... systemd[1]: Starting nginx - high performance web server...
+... .. ..:..:.. ip-...-...-...-... systemd[1]: Started nginx - high performance web server.
 ```
 
 12. Go to [AWS EC2](https://eu-west-3.console.aws.amazon.com/ec2/), select your instance and copy its *Public IP* and in your browser go to *`http://<your instance ip>/airline`*. You should see a webpage with **Welcome to nginx!** on it.
 
 13. Update `airline-company-app/src/constants.js` to update your instance ip
 ```bash
-cd
-nano airline-company-app/src/constants.js
+cd && nano airline-company-app/src/constants.js
 ```
 
 ```
@@ -256,7 +268,17 @@ nano airline-company-app/src/constants.js
 exports.apiendpoint = 'http://<your ip address>';
 ```
 
-14. Return to your terminal, create a `.conf` file for NGINX
+Now build the source to take into account your modification.
+```bash
+cd && cd airline-company-app
+# npm install could take a long time if your instance doesn't have a lot of memory
+# alternatively, you can execute yarn build-server on your dev environment on your machine
+# and then scp (copy via ssh) the build repo in your cloud instance
+npm install
+npm run build-server
+```
+
+14. Create a `.conf` file for NGINX
 ```bash
 cd /etc/nginx/conf.d
 sudo mv default.conf default.conf.bak
@@ -277,32 +299,36 @@ server {
 sudo nginx -s reload
 ```
 
-15. Install **tmux** and run your servers
+## Run your server
+
+15. Install **tmux** and run your server
 ```bash
 cd
 sudo apt install tmux
-cd airline-company-app/
-npm install serve
 ```
 
-Into **tmux**, use `Ctrl-b "` to split window, `Ctrl-b Arrow` to change window, and `Ctrl-b d` to detach your session.
+> Into **tmux**, use `Ctrl-b "` to split window, `Ctrl-b Arrow` to change window, and `Ctrl-b d` to detach your session. Then, type `tmux attach-session -t 0` to recover your session.
 
-Then, type `tmux attach-session -t 0` to recover your session.
+Open tmux and run the server.
 
-Open tmux and run the server
-
-```
+```bash
 cd
 cd airline-company-app/
-tmux
+tmux # this will open tmux
 cd backend/mysql-server
 npm install
 npm run prod
 ```
 
-Hit `Ctrl-b d`.
+Hit `Ctrl-b d` to detach your session.
 
 Your site is up and running at *`http://<your instance ip>/airline`*.
+
+Exit your cloud instance.
+
+```bash
+exit # (or Ctrl-d)
+```
 
 # Database
 
