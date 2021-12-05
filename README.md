@@ -2,7 +2,7 @@
 
 Work done for Centrale Lyon, MOD 4.6 Database system
 
-Airline Company Website is up and running at *[https://adrkacz.github.io/airline-company-app/](https://adrkacz.github.io/airline-company-app/)*
+Airline Company Website is up and running at *[http://35.180.199.50/](http://35.180.199.50)*, if the app is not running, please contact me (via Messenger, mail, or pull request).
 
 # Architecture
 
