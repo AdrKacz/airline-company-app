@@ -151,7 +151,7 @@ These forms are created thanks to a **JSON** template `databaseSchema` at `src/c
                 'fields': [
                         ...,
                         ['name-of-a-field', 'type-of-this-field'],
-                        ['name-of-a-external key field', '$name-of-this-external-key-object$field-to-display-a.field-to-display-b.etc.]
+                        ['name-of-a-external key field', '$name-of-this-external-key-object$field-to-display-a.field-to-display-b.etc.']
                         ...,
                 ]
         }
