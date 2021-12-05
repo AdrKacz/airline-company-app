@@ -144,7 +144,7 @@ There are three forms, one to create objects (`AdminCreateForm` at `src/componen
 
 These forms are created thanks to a **JSON** template `databaseSchema` at `src/components/admin/database-schema.js`.
 
-```json
+```js
 {
         ...,
         'name-of-an-object': {
